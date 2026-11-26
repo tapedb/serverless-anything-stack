@@ -346,9 +346,10 @@
       "id": "init-cli-bin",
       "checkedAt": "2026-11-26",
       "evidence": [
-        "https://github.com/tapedb/tapedb/pull/118"
+        "https://github.com/tapedb/tapedb/pull/118",
+        "https://github.com/tapedb/tapedb/releases/tag/v0.4.2"
       ],
-      "text": "A project made by @tapedb/cli@0.4.1 init has no tapedb-cli bin, so the printed `npx tapedb-cli ...` runs the deprecated unscoped tapedb-cli@0.1.30 from the registry. Fixed in PR #118 (open). The fixtures here pin @tapedb/cli explicitly."
+      "text": "A project made by @tapedb/cli@0.4.1 init (or earlier) has no tapedb-cli bin, so the printed `npx tapedb-cli ...` runs the deprecated unscoped tapedb-cli@0.1.30 from the registry. Fixed in tapedb 0.4.2 (PR #118, released on GitHub 2026-11-26; npm publish pending). The fixtures here pin @tapedb/cli explicitly."
     }
   ]
 }

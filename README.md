@@ -79,7 +79,7 @@ fixture writes fresh local secrets to `.dev.vars` on first run.
 - The architecture rules match on component names; review still matters.
 - TapeDB gaps found while building this are recorded in
   `catalog/tapedb.json` (`findings`) and reported upstream: the admin HTTP
-  API does not apply schema defaults, and before tapedb PR #118 `init` left
+  API does not apply schema defaults, and before tapedb 0.4.2 `init` left
   `npx tapedb-cli` resolving to a deprecated registry package.
 
 ## License

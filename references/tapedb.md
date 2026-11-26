@@ -60,6 +60,6 @@ transactions across rows that belong together).
   race the first redemption can be refused too.
 - The admin routes added in 0.4 (`/metrics`, `/webhooks*`, `/queries`) came
   after TapeDB's last security review.
-- In projects made by `init` before PR #118, `npx tapedb-cli` resolves to a
+- In projects made by `init` before 0.4.2, `npx tapedb-cli` resolves to a
   deprecated registry package; pin `@tapedb/cli` to the same version as
   `@tapedb/tapedb`.
