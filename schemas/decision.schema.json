@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "decision.schema.json",
+  "title": "Decision",
+  "description": "An architecture decision, with the alternatives that were weighed.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "title", "status", "context", "options", "choice", "consequences"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9.-]*$" },
+    "title": { "type": "string", "minLength": 1 },
+    "status": { "enum": ["proposed", "accepted", "superseded", "rejected"] },
+    "context": { "type": "string", "minLength": 1 },
+    "options": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "tradeoffs"],
+        "properties": {
+          "name": { "type": "string", "minLength": 1 },
+          "tradeoffs": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "choice": { "type": "string", "minLength": 1, "description": "The name of the chosen option." },
+    "consequences": { "type": "string", "minLength": 1 },
+    "evidence": { "type": "array", "items": { "type": "string" } }
+  }
+}

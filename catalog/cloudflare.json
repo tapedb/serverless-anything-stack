@@ -1,0 +1,136 @@
+{
+  "catalog": "cloudflare",
+  "checkedAt": "2026-11-26",
+  "note": "Read from developers.cloudflare.com on the date above. Limits and prices change; re-check before a cost model or a design that sits near a limit. Products renamed in 2026 are listed under their current name with the old one in formerly.",
+  "entries": [
+    {
+      "id": "workers",
+      "name": "Workers",
+      "maturity": "GA",
+      "facts": [
+        "Paid: 128 MB memory per isolate, CPU up to 5 min per invocation (default 30 s), 10,000 subrequests per invocation by default (configurable up to 10M), 6 simultaneous outgoing connections per request.",
+        "Free: 10 ms CPU, 50 subrequests."
+      ],
+      "sources": ["https://developers.cloudflare.com/workers/platform/limits/"]
+    },
+    {
+      "id": "durable-objects",
+      "name": "Durable Objects (SQLite storage)",
+      "maturity": "GA",
+      "facts": [
+        "Paid: rows read 25 billion per month included then $0.001 per million; rows written 50 million included then $1.00 per million; stored data 5 GB-month included then $0.20 per GB-month. Compute billed as requests and wall-clock duration (128 MB per object, shared if co-located).",
+        "WebSocket hibernation avoids duration charges while sockets are idle.",
+        "SqlStorageCursor reports rowsRead and rowsWritten per statement; these are the billed figures.",
+        "Overloaded objects answer 'Durable Object is overloaded' under extreme per-object request rates."
+      ],
+      "sources": [
+        "https://developers.cloudflare.com/durable-objects/platform/pricing/",
+        "https://developers.cloudflare.com/durable-objects/api/sqlite-storage-api/"
+      ]
+    },
+    {
+      "id": "queues",
+      "name": "Queues",
+      "maturity": "GA",
+      "facts": [
+        "At-least-once delivery; batches (default 10 messages, 5 s); max_retries default 3; a failed message in a batch retries the batch unless messages are acked individually.",
+        "Dead-letter queue optional; without one, messages past max_retries are deleted; a DLQ without a consumer keeps messages 4 days.",
+        "About 3 operations per message (write, read, delete) at $0.40 per million after included usage; each retry is a read."
+      ],
+      "sources": [
+        "https://developers.cloudflare.com/queues/configuration/batching-retries/",
+        "https://developers.cloudflare.com/queues/configuration/dead-letter-queues/",
+        "https://developers.cloudflare.com/queues/platform/pricing/"
+      ]
+    },
+    {
+      "id": "workflows",
+      "name": "Workflows",
+      "maturity": "GA",
+      "facts": [
+        "Durable multi-step execution; step.do retries; step.sleep up to 365 days and waitForEvent; sleeping instances do not hold concurrency.",
+        "Paid: 10,000 steps per instance by default (up to 25,000), 50,000 concurrent instances per account, 300 instance creations per second per account and 100 per Workflow, 1 MiB per non-stream step result and per event payload, 1 GB state per instance.",
+        "Per-Workflow concurrency limits queue instances rather than reject them.",
+        "Instance state and logs retained 7 days by default on Paid (configurable to 30)."
+      ],
+      "sources": [
+        "https://developers.cloudflare.com/workflows/reference/limits/",
+        "https://developers.cloudflare.com/workflows/build/concurrency-limits/"
+      ]
+    },
+    {
+      "id": "basin",
+      "name": "Basin (Pipelines, Catalog, SQL)",
+      "formerly": "Cloudflare Data Platform: Pipelines, R2 Data Catalog, R2 SQL",
+      "maturity": "GA since 2026-10-01",
+      "facts": [
+        "Basin Pipelines ingests over HTTP, Workers bindings and Logpush, transforms with SQL, and writes Iceberg tables, Parquet or JSON to R2. Ingress free; transforms $0.04 per GB; sinks $0.03 per GB JSON, $0.06 per GB Parquet/Iceberg; 50 GB per month each included on Paid.",
+        "Basin Catalog manages Iceberg tables (compaction, snapshot expiry) readable by external engines (DuckDB, Spark, Snowflake, PyIceberg).",
+        "Basin SQL queries Iceberg tables, with joins and subqueries; $2.50 per TB of compressed data scanned (10 MB minimum per query, 10 GB per month included)."
+      ],
+      "sources": [
+        "https://developers.cloudflare.com/basin/",
+        "https://developers.cloudflare.com/changelog/post/2026-10-01-basin-ga/",
+        "https://developers.cloudflare.com/changelog/post/2026-05-11-r2-sql-pricing-announced/"
+      ]
+    },
+    {
+      "id": "analytics-engine",
+      "name": "Workers Analytics Engine",
+      "maturity": "GA",
+      "facts": [
+        "Up to 20 blobs, 20 doubles and 1 index per data point; 16 KB of blobs per point; 250 data points per invocation; 3 months retention.",
+        "Adaptive sampling at write time and query time: aggregate metrics, not exact event exploration."
+      ],
+      "sources": [
+        "https://developers.cloudflare.com/analytics/analytics-engine/limits/",
+        "https://developers.cloudflare.com/analytics/analytics-engine/sampling/"
+      ]
+    },
+    {
+      "id": "r2",
+      "name": "R2",
+      "maturity": "GA",
+      "facts": ["Object storage without egress fees; not a query engine on its own."],
+      "sources": ["https://developers.cloudflare.com/r2/pricing/"],
+      "unverified": ["Per-operation prices were not re-read for this catalog."]
+    },
+    {
+      "id": "d1",
+      "name": "D1",
+      "maturity": "GA",
+      "facts": [
+        "Serverless SQLite; rows read and written priced as Durable Objects SQLite; 100 bound parameters and 100 KB per statement; read replicas.",
+        "1,000 queries per Worker invocation on Paid."
+      ],
+      "sources": ["https://developers.cloudflare.com/d1/platform/limits/"]
+    },
+    {
+      "id": "kv",
+      "name": "Workers KV",
+      "maturity": "GA",
+      "facts": ["Eventually consistent; 1 write per second to the same key; 1,000 operations per invocation."],
+      "sources": ["https://developers.cloudflare.com/kv/platform/limits/"],
+      "guidance": "Use directly for read-heavy public metadata or caches when justified; not a transactional store."
+    },
+    {
+      "id": "vectorize",
+      "name": "Vectorize",
+      "maturity": "GA",
+      "facts": ["Paid plan only."],
+      "sources": ["https://developers.cloudflare.com/workers/platform/pricing/#vectorize"],
+      "unverified": ["Index limits and pricing were not re-read for this catalog."]
+    },
+    {
+      "id": "workers-logs",
+      "name": "Workers Logs",
+      "maturity": "GA",
+      "facts": ["7 days retention; 5 billion logs per account per day before 1% sampling; 256 KB per log."],
+      "sources": ["https://developers.cloudflare.com/workers/observability/logs/workers-logs/"]
+    }
+  ],
+  "toCheck": [
+    "K2 / K2 Streams (durable logs): a candidate for GlitchTip-style ingestion; not yet read.",
+    "Email Service: TapeDB's mailer uses its send_email binding (beta when TapeDB adopted it)."
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "capability.schema.json",
+  "title": "Capability",
+  "description": "One capability an upstream application needs, where it would live on Cloudflare, and how far that is proven.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "description", "workload", "upstreamEvidence", "candidate", "status", "gaps", "owner", "acceptanceTests", "decision"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9.-]*$", "description": "Stable id, unique within the assessment." },
+    "description": { "type": "string", "minLength": 1 },
+    "workload": { "enum": ["transactional", "realtime", "asynchronous", "ingestion", "analytical", "object-storage", "identity-protocol", "compute"] },
+    "upstreamEvidence": { "type": "array", "items": { "type": "string" }, "description": "Evidence ids that show the upstream has this capability." },
+    "candidate": { "type": "string", "minLength": 1, "description": "The implementation proposed or built, naming the primitive (a TapeDB API, a Cloudflare product, application code)." },
+    "candidateEvidence": { "type": "array", "items": { "type": "string" }, "description": "Evidence ids that show the candidate does what is claimed." },
+    "status": { "enum": ["verified", "partial", "unverified", "unsupported", "not-applicable"] },
+    "gaps": { "type": "array", "items": { "type": "string", "minLength": 1 }, "description": "Semantic differences from the upstream behaviour." },
+    "owner": { "type": "string", "minLength": 1, "description": "Who closes the gaps: tapedb, cloudflare, application, or a person." },
+    "acceptanceTests": { "type": "array", "items": { "type": "string" }, "description": "Test ids that would show the capability works." },
+    "decision": { "enum": ["reuse", "extend", "external", "exclude"] },
+    "notes": { "type": "string" }
+  }
+}
