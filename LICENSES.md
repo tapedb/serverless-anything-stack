@@ -4,9 +4,7 @@ Checked 2026-11-26.
 
 ## This repository
 
-No license has been chosen yet; that is the owner's decision, together with
-the repository's name and visibility. Until then, all rights are reserved by
-the owner.
+MIT (see `LICENSE`), the same license as TapeDB.
 
 ## Runtime dependencies
 

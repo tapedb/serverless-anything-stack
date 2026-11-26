@@ -45,7 +45,7 @@ skills in `~/.claude/skills/<name>/`, project skills in
 `.claude/skills/<name>/`. Clone or link this repository as one:
 
 ```bash
-git clone <this repository> ~/.claude/skills/serverless-anything
+git clone https://github.com/tapedb/serverless-anything-stack ~/.claude/skills/serverless-anything
 ```
 
 Then ask for an assessment, for example "assess https://github.com/owner/app
@@ -82,7 +82,7 @@ fixture writes fresh local secrets to `.dev.vars` on first run.
   API does not apply schema defaults, and before tapedb PR #118 `init` left
   `npx tapedb-cli` resolving to a deprecated registry package.
 
-## Status
+## License
 
-Not published. The repository name, its visibility and its license are the
-owner's decisions (see `LICENSES.md`).
+MIT; see `LICENSE`. Dependency and upstream licenses are reviewed in
+`LICENSES.md`.
