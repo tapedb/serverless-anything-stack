@@ -1,0 +1,27 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "ingest-fixture",
+  "main": "worker.ts",
+  "compatibility_date": "2026-11-26",
+  "compatibility_flags": ["nodejs_compat"],
+  "vars": {
+    "ENVIRONMENT": "development",
+    // Fixture project keys → organization workspaces. A deployment keeps this in KV or the AuthRoom.
+    "PROJECTS": "{\"key-org-a\":\"7f3c9d2e-4b1a-4c8e-9f6d-2a5b8c1e3d4f\",\"key-org-b\":\"1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d\"}"
+  },
+  "durable_objects": {
+    "bindings": [{ "name": "WORKSPACE", "class_name": "WorkspaceRoom" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["WorkspaceRoom"] }],
+  "r2_buckets": [
+    { "binding": "DATA", "bucket_name": "ingest-fixture-data" },
+    { "binding": "FILES", "bucket_name": "ingest-fixture-files" }
+  ],
+  "queues": {
+    "producers": [{ "binding": "EVENTS", "queue": "events" }],
+    "consumers": [
+      { "queue": "events", "max_batch_size": 50, "max_batch_timeout": 1, "max_retries": 2, "dead_letter_queue": "events-dlq", "retry_delay": 0 },
+      { "queue": "events-dlq", "max_batch_size": 10, "max_batch_timeout": 1 }
+    ]
+  }
+}

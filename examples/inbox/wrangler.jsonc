@@ -1,0 +1,18 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "inbox-fixture",
+  "main": "worker.ts",
+  "compatibility_date": "2026-11-26",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "observability": { "enabled": true, "traces": { "enabled": true } },
+  "vars": { "ENVIRONMENT": "development" },
+  "durable_objects": {
+    "bindings": [{ "name": "WORKSPACE", "class_name": "WorkspaceRoom" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["WorkspaceRoom"] }],
+  "r2_buckets": [
+    { "binding": "DATA", "bucket_name": "inbox-fixture-data" },
+    { "binding": "FILES", "bucket_name": "inbox-fixture-files" }
+  ]
+}

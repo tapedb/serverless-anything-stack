@@ -10,41 +10,274 @@
     "inspectedAt": "2026-11-26"
   },
   "evidence": [
-    { "id": "gt.license", "kind": "source", "ref": "LICENSE", "revision": "76307e8", "note": "MIT." },
-    { "id": "gt.deps", "kind": "manifest", "ref": "pyproject.toml", "revision": "76307e8", "note": "Django 6.1, django-vtasks (optional valkey), django-postgres-partition, duckdb, django-allauth with MFA." },
-    { "id": "gt.ingest", "kind": "source", "ref": "apps/event_ingest/ (api.py, tasks.py)", "revision": "76307e8", "note": "Sentry-compatible store and envelope endpoints enqueue ingest_event before responding; batch tasks with a per-message poison guard." },
-    { "id": "gt.rust", "kind": "source", "ref": "glitchtip-rust envelope ingest (referenced from compose and settings)", "revision": "76307e8", "note": "Optional Rust ingest front end." },
-    { "id": "gt.otlp", "kind": "source", "ref": "apps/logs/, apps/performance/ (OTLP)", "revision": "76307e8", "note": "OTLP logs and traces." },
-    { "id": "gt.partitions", "kind": "source", "ref": "settings.py (PARTITION_HASH_BUCKETS), apps/issue_events/models.py", "revision": "76307e8", "note": "Postgres 18 with time and hash partitions; 90-day default retention." },
-    { "id": "gt.cold", "kind": "source", "ref": "apps/*/cold_storage.py", "revision": "76307e8", "note": "Aged events exported to Parquet and queried with DuckDB." },
-    { "id": "gt.grouping", "kind": "source", "ref": "apps/issue_events/ (fingerprinting, issue aggregation)", "revision": "76307e8", "note": "Events grouped into issues by fingerprint." },
-    { "id": "gt.alerts", "kind": "source", "ref": "apps/alerts/", "revision": "76307e8", "note": "Alert rules with email and webhook recipients." },
-    { "id": "gt.uptime", "kind": "source", "ref": "apps/uptime/", "revision": "76307e8", "note": "Scheduled uptime monitors and heartbeats." },
-    { "id": "gt.symbolication", "kind": "source", "ref": "apps/symbolication/, apps/sourcecode/, apps/releases/", "revision": "76307e8", "note": "Source maps, debug files, releases." },
-    { "id": "gt.orgs", "kind": "source", "ref": "apps/organizations_ext/, apps/teams/, apps/projects/", "revision": "76307e8", "note": "Organizations, teams, projects, DSN keys." },
-    { "id": "td.catalog", "kind": "documentation", "ref": "catalog/tapedb.json", "checkedAt": "2026-11-26", "note": "TapeDB capability catalog in this repository." },
-    { "id": "td.e2e", "kind": "test", "ref": "tapedb scripts/e2e/*.mjs (select, live-order, webhooks) at 0.4.1 (255c09b)", "checkedAt": "2026-11-26", "note": "TapeDB scenarios in workerd and on staging." },
-    { "id": "td.bench", "kind": "run", "ref": "tapedb BENCHMARKS.md (tapedb 0.4.1)", "checkedAt": "2026-11-26", "note": "Single-writer throughput per workspace; bottleneck notes 5-8." },
-    { "id": "cf.queues", "kind": "documentation", "ref": "https://developers.cloudflare.com/queues/configuration/batching-retries/", "checkedAt": "2026-11-26", "note": "Batches, retries, DLQ kept 4 days." },
-    { "id": "cf.basin", "kind": "documentation", "ref": "https://developers.cloudflare.com/basin/", "checkedAt": "2026-11-26", "note": "Pipelines into R2 Iceberg tables; Basin SQL. GA 2026-10-01." },
-    { "id": "cf.basin-pricing", "kind": "pricing", "ref": "https://developers.cloudflare.com/basin/platform/pricing/", "checkedAt": "2026-11-26", "note": "Basin SQL $2.50 per TB scanned." },
-    { "id": "cf.queues-pricing", "kind": "pricing", "ref": "https://developers.cloudflare.com/queues/platform/pricing/", "checkedAt": "2026-11-26", "note": "About 3 operations per message." },
-    { "id": "cf.do-pricing", "kind": "pricing", "ref": "https://developers.cloudflare.com/durable-objects/platform/pricing/", "checkedAt": "2026-11-26", "note": "Durable Objects pricing." }
+    {
+      "id": "gt.license",
+      "kind": "source",
+      "ref": "LICENSE",
+      "revision": "76307e8",
+      "note": "MIT."
+    },
+    {
+      "id": "gt.deps",
+      "kind": "manifest",
+      "ref": "pyproject.toml",
+      "revision": "76307e8",
+      "note": "Django 6.1, django-vtasks (optional valkey), django-postgres-partition, duckdb, django-allauth with MFA."
+    },
+    {
+      "id": "gt.ingest",
+      "kind": "source",
+      "ref": "apps/event_ingest/ (api.py, tasks.py)",
+      "revision": "76307e8",
+      "note": "Sentry-compatible store and envelope endpoints enqueue ingest_event before responding; batch tasks with a per-message poison guard."
+    },
+    {
+      "id": "gt.rust",
+      "kind": "source",
+      "ref": "glitchtip-rust envelope ingest (referenced from compose and settings)",
+      "revision": "76307e8",
+      "note": "Optional Rust ingest front end."
+    },
+    {
+      "id": "gt.otlp",
+      "kind": "source",
+      "ref": "apps/logs/, apps/performance/ (OTLP)",
+      "revision": "76307e8",
+      "note": "OTLP logs and traces."
+    },
+    {
+      "id": "gt.partitions",
+      "kind": "source",
+      "ref": "settings.py (PARTITION_HASH_BUCKETS), apps/issue_events/models.py",
+      "revision": "76307e8",
+      "note": "Postgres 18 with time and hash partitions; 90-day default retention."
+    },
+    {
+      "id": "gt.cold",
+      "kind": "source",
+      "ref": "apps/*/cold_storage.py",
+      "revision": "76307e8",
+      "note": "Aged events exported to Parquet and queried with DuckDB."
+    },
+    {
+      "id": "gt.grouping",
+      "kind": "source",
+      "ref": "apps/issue_events/ (fingerprinting, issue aggregation)",
+      "revision": "76307e8",
+      "note": "Events grouped into issues by fingerprint."
+    },
+    {
+      "id": "gt.alerts",
+      "kind": "source",
+      "ref": "apps/alerts/",
+      "revision": "76307e8",
+      "note": "Alert rules with email and webhook recipients."
+    },
+    {
+      "id": "gt.uptime",
+      "kind": "source",
+      "ref": "apps/uptime/",
+      "revision": "76307e8",
+      "note": "Scheduled uptime monitors and heartbeats."
+    },
+    {
+      "id": "gt.symbolication",
+      "kind": "source",
+      "ref": "apps/symbolication/, apps/sourcecode/, apps/releases/",
+      "revision": "76307e8",
+      "note": "Source maps, debug files, releases."
+    },
+    {
+      "id": "gt.orgs",
+      "kind": "source",
+      "ref": "apps/organizations_ext/, apps/teams/, apps/projects/",
+      "revision": "76307e8",
+      "note": "Organizations, teams, projects, DSN keys."
+    },
+    {
+      "id": "td.catalog",
+      "kind": "documentation",
+      "ref": "catalog/tapedb.json",
+      "checkedAt": "2026-11-26",
+      "note": "TapeDB capability catalog in this repository."
+    },
+    {
+      "id": "td.e2e",
+      "kind": "test",
+      "ref": "tapedb scripts/e2e/*.mjs (select, live-order, webhooks) at 0.4.1 (255c09b)",
+      "checkedAt": "2026-11-26",
+      "note": "TapeDB scenarios in workerd and on staging."
+    },
+    {
+      "id": "td.bench",
+      "kind": "run",
+      "ref": "tapedb BENCHMARKS.md (tapedb 0.4.1)",
+      "checkedAt": "2026-11-26",
+      "note": "Single-writer throughput per workspace; bottleneck notes 5-8."
+    },
+    {
+      "id": "cf.queues",
+      "kind": "documentation",
+      "ref": "https://developers.cloudflare.com/queues/configuration/batching-retries/",
+      "checkedAt": "2026-11-26",
+      "note": "Batches, retries, DLQ kept 4 days."
+    },
+    {
+      "id": "cf.basin",
+      "kind": "documentation",
+      "ref": "https://developers.cloudflare.com/basin/",
+      "checkedAt": "2026-11-26",
+      "note": "Pipelines into R2 Iceberg tables; Basin SQL. GA 2026-10-01."
+    },
+    {
+      "id": "cf.basin-pricing",
+      "kind": "pricing",
+      "ref": "https://developers.cloudflare.com/basin/platform/pricing/",
+      "checkedAt": "2026-11-26",
+      "note": "Basin SQL $2.50 per TB scanned."
+    },
+    {
+      "id": "cf.queues-pricing",
+      "kind": "pricing",
+      "ref": "https://developers.cloudflare.com/queues/platform/pricing/",
+      "checkedAt": "2026-11-26",
+      "note": "About 3 operations per message."
+    },
+    {
+      "id": "cf.do-pricing",
+      "kind": "pricing",
+      "ref": "https://developers.cloudflare.com/durable-objects/platform/pricing/",
+      "checkedAt": "2026-11-26",
+      "note": "Durable Objects pricing."
+    },
+    {
+      "id": "fx.ingest",
+      "kind": "test",
+      "ref": "examples/ingest (worker.ts, test/ingest.test.mjs), @tapedb/tapedb 0.4.1 under tapedb dev with local Queues",
+      "checkedAt": "2026-11-26",
+      "note": "5 tests in workerd: unknown key refused, grouping and counts, organizations isolated, a poison event retried and dead-lettered without holding back its sibling, and a redelivered message not counted twice (negative control: random tally ids count 2)."
+    }
   ],
   "features": [
-    { "id": "ingest", "name": "Sentry-compatible event and envelope ingest", "workload": "ingestion", "evidence": ["gt.ingest", "gt.rust"], "capabilities": ["ingest-ack", "ingest-backpressure"] },
-    { "id": "otlp", "name": "OTLP logs and traces", "workload": "ingestion", "evidence": ["gt.otlp"], "capabilities": ["otlp"] },
-    { "id": "issues", "name": "Grouping events into issues, issue state", "workload": "transactional", "evidence": ["gt.grouping"], "capabilities": ["issue-state", "grouping"] },
-    { "id": "storage", "name": "Event storage with retention and cold storage", "workload": "analytical", "evidence": ["gt.partitions", "gt.cold"], "capabilities": ["event-store", "retention"] },
-    { "id": "orgs", "name": "Organizations, teams, projects, DSN keys", "workload": "transactional", "evidence": ["gt.orgs"], "capabilities": ["org-model"] },
-    { "id": "alerts", "name": "Alerts by email and webhook", "workload": "asynchronous", "evidence": ["gt.alerts"], "capabilities": ["alerts"] },
-    { "id": "uptime", "name": "Uptime monitors", "workload": "asynchronous", "evidence": ["gt.uptime"], "capabilities": ["uptime"] },
-    { "id": "symbolication", "name": "Source maps and debug files", "workload": "compute", "evidence": ["gt.symbolication"], "capabilities": ["symbolication"] }
+    {
+      "id": "ingest",
+      "name": "Sentry-compatible event and envelope ingest",
+      "workload": "ingestion",
+      "evidence": [
+        "gt.ingest",
+        "gt.rust"
+      ],
+      "capabilities": [
+        "ingest-ack",
+        "ingest-backpressure"
+      ]
+    },
+    {
+      "id": "otlp",
+      "name": "OTLP logs and traces",
+      "workload": "ingestion",
+      "evidence": [
+        "gt.otlp"
+      ],
+      "capabilities": [
+        "otlp"
+      ]
+    },
+    {
+      "id": "issues",
+      "name": "Grouping events into issues, issue state",
+      "workload": "transactional",
+      "evidence": [
+        "gt.grouping"
+      ],
+      "capabilities": [
+        "issue-state",
+        "grouping"
+      ]
+    },
+    {
+      "id": "storage",
+      "name": "Event storage with retention and cold storage",
+      "workload": "analytical",
+      "evidence": [
+        "gt.partitions",
+        "gt.cold"
+      ],
+      "capabilities": [
+        "event-store",
+        "retention"
+      ]
+    },
+    {
+      "id": "orgs",
+      "name": "Organizations, teams, projects, DSN keys",
+      "workload": "transactional",
+      "evidence": [
+        "gt.orgs"
+      ],
+      "capabilities": [
+        "org-model"
+      ]
+    },
+    {
+      "id": "alerts",
+      "name": "Alerts by email and webhook",
+      "workload": "asynchronous",
+      "evidence": [
+        "gt.alerts"
+      ],
+      "capabilities": [
+        "alerts"
+      ]
+    },
+    {
+      "id": "uptime",
+      "name": "Uptime monitors",
+      "workload": "asynchronous",
+      "evidence": [
+        "gt.uptime"
+      ],
+      "capabilities": [
+        "uptime"
+      ]
+    },
+    {
+      "id": "symbolication",
+      "name": "Source maps and debug files",
+      "workload": "compute",
+      "evidence": [
+        "gt.symbolication"
+      ],
+      "capabilities": [
+        "symbolication"
+      ]
+    }
   ],
   "dependencies": [
-    { "name": "PostgreSQL 18", "role": "primary store with partitions", "required": true, "evidence": ["gt.partitions"] },
-    { "name": "Valkey", "role": "task broker and cache", "required": false, "evidence": ["gt.deps"] },
-    { "name": "DuckDB and Parquet", "role": "cold storage queries", "required": false, "evidence": ["gt.cold"] }
+    {
+      "name": "PostgreSQL 18",
+      "role": "primary store with partitions",
+      "required": true,
+      "evidence": [
+        "gt.partitions"
+      ]
+    },
+    {
+      "name": "Valkey",
+      "role": "task broker and cache",
+      "required": false,
+      "evidence": [
+        "gt.deps"
+      ]
+    },
+    {
+      "name": "DuckDB and Parquet",
+      "role": "cold storage queries",
+      "required": false,
+      "evidence": [
+        "gt.cold"
+      ]
+    }
   ],
   "workloadAssumptions": [
     "Ingest volume is bursty and far above what one Durable Object writer should absorb; events must not go through a workspace's write path.",
@@ -53,11 +286,31 @@
   "architecture": {
     "summary": "A compatible rewrite that keeps raw events out of TapeDB: a Worker accepts Sentry envelopes, acknowledges after enqueuing to Queues, consumers group events and write issue rows to a TapeDB workspace per organization, raw events go through Basin Pipelines into R2 Iceberg tables for search and retention, and alerts go out through TapeDB webhooks or Queues.",
     "components": [
-      { "name": "Ingest Worker", "primitive": "Workers + Queues", "responsibility": "DSN check, size limits, enqueue, ack" },
-      { "name": "Grouping consumer", "primitive": "Queues consumer", "responsibility": "fingerprint, upsert issue rows in batches" },
-      { "name": "Organization workspace", "primitive": "TapeDB workspace", "responsibility": "orgs, projects, issues, assignments, alert rules; live issue lists" },
-      { "name": "Event store", "primitive": "Basin Pipelines, R2 Iceberg, Basin SQL", "responsibility": "raw events, retention, event search" },
-      { "name": "Alerts", "primitive": "TapeDB webhooks into Queues", "responsibility": "email and webhook notifications" }
+      {
+        "name": "Ingest Worker",
+        "primitive": "Workers + Queues",
+        "responsibility": "DSN check, size limits, enqueue, ack"
+      },
+      {
+        "name": "Grouping consumer",
+        "primitive": "Queues consumer",
+        "responsibility": "fingerprint, upsert issue rows in batches"
+      },
+      {
+        "name": "Organization workspace",
+        "primitive": "TapeDB workspace",
+        "responsibility": "orgs, projects, issues, assignments, alert rules; live issue lists"
+      },
+      {
+        "name": "Event store",
+        "primitive": "Basin Pipelines, R2 Iceberg, Basin SQL",
+        "responsibility": "raw events, retention, event search"
+      },
+      {
+        "name": "Alerts",
+        "primitive": "TapeDB webhooks into Queues",
+        "responsibility": "email and webhook notifications"
+      }
     ]
   },
   "capabilities": [
@@ -65,22 +318,37 @@
       "id": "ingest-ack",
       "description": "Acknowledge an event only once it is durably accepted",
       "workload": "ingestion",
-      "upstreamEvidence": ["gt.ingest"],
+      "upstreamEvidence": [
+        "gt.ingest"
+      ],
       "candidate": "Worker sends to Queues before responding",
-      "status": "unverified",
-      "gaps": ["Not built or tested; Queues send is durable on success per documentation."],
+      "status": "partial",
+      "gaps": [
+        "Verified in workerd with local Queues only; not run against deployed Queues.",
+        "Envelope parsing covers event items; attachments, sessions and transactions items are ignored."
+      ],
       "owner": "application",
-      "acceptanceTests": ["t.fixture-ingest"],
-      "decision": "external"
+      "acceptanceTests": [
+        "t.fixture-ingest"
+      ],
+      "decision": "external",
+      "candidateEvidence": [
+        "fx.ingest",
+        "cf.queues"
+      ]
     },
     {
       "id": "ingest-backpressure",
       "description": "Rate limits and quotas per project",
       "workload": "ingestion",
-      "upstreamEvidence": ["gt.ingest"],
+      "upstreamEvidence": [
+        "gt.ingest"
+      ],
       "candidate": "Workers rate limiting binding plus counters",
       "status": "unverified",
-      "gaps": ["Not assessed."],
+      "gaps": [
+        "Not assessed."
+      ],
       "owner": "application",
       "acceptanceTests": [],
       "decision": "external"
@@ -89,10 +357,14 @@
       "id": "otlp",
       "description": "OTLP logs and traces",
       "workload": "ingestion",
-      "upstreamEvidence": ["gt.otlp"],
+      "upstreamEvidence": [
+        "gt.otlp"
+      ],
       "candidate": "Same ingest path into Basin",
       "status": "unverified",
-      "gaps": ["Not assessed."],
+      "gaps": [
+        "Not assessed."
+      ],
       "owner": "application",
       "acceptanceTests": [],
       "decision": "external"
@@ -101,36 +373,65 @@
       "id": "issue-state",
       "description": "Issue rows, status, assignment with live lists",
       "workload": "transactional",
-      "upstreamEvidence": ["gt.grouping"],
+      "upstreamEvidence": [
+        "gt.grouping"
+      ],
       "candidate": "TapeDB models and live queries in a workspace per organization",
-      "candidateEvidence": ["td.catalog", "td.e2e"],
+      "candidateEvidence": [
+        "td.catalog",
+        "td.e2e",
+        "fx.ingest"
+      ],
       "status": "partial",
-      "gaps": ["Batched upserts from a queue consumer at ingest rate not benchmarked against one workspace writer."],
+      "gaps": [
+        "Write throughput of one organization's workspace at ingest rate not benchmarked; the consumer writes one transaction per event."
+      ],
       "owner": "application",
-      "acceptanceTests": ["t.select", "t.live-order", "t.fixture-grouping"],
+      "acceptanceTests": [
+        "t.select",
+        "t.live-order",
+        "t.fixture-grouping"
+      ],
       "decision": "reuse"
     },
     {
       "id": "grouping",
       "description": "Fingerprinting compatible with Sentry SDK grouping",
       "workload": "compute",
-      "upstreamEvidence": ["gt.grouping"],
+      "upstreamEvidence": [
+        "gt.grouping"
+      ],
       "candidate": "Application code in the consumer",
-      "status": "unverified",
-      "gaps": ["Compatibility with upstream fingerprints not checked."],
+      "status": "partial",
+      "gaps": [
+        "Simplified fingerprinting (explicit fingerprint, last exception type and value with numbers removed, or message); not compared against Sentry's grouping."
+      ],
       "owner": "application",
-      "acceptanceTests": ["t.fixture-grouping"],
-      "decision": "external"
+      "acceptanceTests": [
+        "t.fixture-grouping"
+      ],
+      "decision": "external",
+      "candidateEvidence": [
+        "fx.ingest"
+      ]
     },
     {
       "id": "event-store",
       "description": "Raw event storage and search",
       "workload": "analytical",
-      "upstreamEvidence": ["gt.partitions", "gt.cold"],
+      "upstreamEvidence": [
+        "gt.partitions",
+        "gt.cold"
+      ],
       "candidate": "Basin Pipelines into R2 Iceberg; Basin SQL",
-      "candidateEvidence": ["cf.basin"],
+      "candidateEvidence": [
+        "cf.basin"
+      ],
       "status": "unverified",
-      "gaps": ["Basin SQL latency for interactive event lists not measured.", "TapeDB is not an event store and is not used here."],
+      "gaps": [
+        "Basin SQL latency for interactive event lists not measured.",
+        "TapeDB is not an event store and is not used here."
+      ],
       "owner": "application",
       "acceptanceTests": [],
       "decision": "external"
@@ -139,10 +440,14 @@
       "id": "retention",
       "description": "Retention windows per organization",
       "workload": "analytical",
-      "upstreamEvidence": ["gt.partitions"],
+      "upstreamEvidence": [
+        "gt.partitions"
+      ],
       "candidate": "Iceberg partition expiry; TapeDB rows deleted by a scheduled job",
       "status": "unverified",
-      "gaps": ["Not assessed."],
+      "gaps": [
+        "Not assessed."
+      ],
       "owner": "application",
       "acceptanceTests": [],
       "decision": "external"
@@ -151,11 +456,17 @@
       "id": "org-model",
       "description": "Organizations, teams, projects, DSN keys, membership",
       "workload": "transactional",
-      "upstreamEvidence": ["gt.orgs"],
+      "upstreamEvidence": [
+        "gt.orgs"
+      ],
       "candidate": "TapeDB built-in auth with membership and a workspace per organization",
-      "candidateEvidence": ["td.catalog"],
+      "candidateEvidence": [
+        "td.catalog"
+      ],
       "status": "partial",
-      "gaps": ["DSN key lookup at the ingest edge needs a fast path outside the workspace (cache)."],
+      "gaps": [
+        "DSN key lookup at the ingest edge needs a fast path outside the workspace (cache)."
+      ],
       "owner": "application",
       "acceptanceTests": [],
       "decision": "reuse"
@@ -164,23 +475,35 @@
       "id": "alerts",
       "description": "Alerts on new or regressed issues",
       "workload": "asynchronous",
-      "upstreamEvidence": ["gt.alerts"],
+      "upstreamEvidence": [
+        "gt.alerts"
+      ],
       "candidate": "TapeDB webhooks on issue rows into a Queues consumer",
-      "candidateEvidence": ["td.e2e"],
+      "candidateEvidence": [
+        "td.e2e"
+      ],
       "status": "partial",
-      "gaps": ["Webhook delivery is verified; alert rule evaluation is application code."],
+      "gaps": [
+        "Webhook delivery is verified; alert rule evaluation is application code."
+      ],
       "owner": "application",
-      "acceptanceTests": ["t.webhooks"],
+      "acceptanceTests": [
+        "t.webhooks"
+      ],
       "decision": "reuse"
     },
     {
       "id": "uptime",
       "description": "Uptime monitors",
       "workload": "asynchronous",
-      "upstreamEvidence": ["gt.uptime"],
+      "upstreamEvidence": [
+        "gt.uptime"
+      ],
       "candidate": "Cron Triggers",
       "status": "unverified",
-      "gaps": ["Not assessed."],
+      "gaps": [
+        "Not assessed."
+      ],
       "owner": "application",
       "acceptanceTests": [],
       "decision": "external"
@@ -189,23 +512,52 @@
       "id": "symbolication",
       "description": "Source maps and native symbolication",
       "workload": "compute",
-      "upstreamEvidence": ["gt.symbolication"],
+      "upstreamEvidence": [
+        "gt.symbolication"
+      ],
       "candidate": "Source maps in a Worker; native debug files not assessed",
       "status": "unverified",
-      "gaps": ["Native symbolication may exceed Worker CPU and memory limits."],
+      "gaps": [
+        "Native symbolication may exceed Worker CPU and memory limits."
+      ],
       "owner": "application",
       "acceptanceTests": [],
       "decision": "exclude"
     }
   ],
   "risks": [
-    { "id": "r.ingest-through-workspace", "description": "Writing raw events into a workspace would hit the single-writer limit.", "mitigation": "Raw events never enter TapeDB; only batched issue upserts do." },
-    { "id": "r.basin-latency", "description": "Event search through Basin SQL may be too slow for interactive views.", "mitigation": "Measure before committing; keep the latest events per issue in the workspace." }
+    {
+      "id": "r.ingest-through-workspace",
+      "description": "Writing raw events into a workspace would hit the single-writer limit.",
+      "mitigation": "Raw events never enter TapeDB; only batched issue upserts do."
+    },
+    {
+      "id": "r.basin-latency",
+      "description": "Event search through Basin SQL may be too slow for interactive views.",
+      "mitigation": "Measure before committing; keep the latest events per issue in the workspace."
+    },
+    {
+      "id": "r.admin-api-defaults",
+      "description": "TapeDB's /v1/transact takes wire ops as they are and does not apply schema defaults; an insert missing a defaulted field is refused (invalid_op).",
+      "mitigation": "The consumer spells out every defaulted field; reported upstream as a documentation gap."
+    }
   ],
   "costAssumptions": [
-    { "driver": "Queue operations", "assumption": "About 3 operations per event before batching.", "source": "cf.queues-pricing" },
-    { "driver": "Basin SQL", "assumption": "Event search billed per TB scanned.", "source": "cf.basin-pricing" },
-    { "driver": "Workspace writes", "assumption": "Batched issue upserts; volume not modelled.", "source": "cf.do-pricing" }
+    {
+      "driver": "Queue operations",
+      "assumption": "About 3 operations per event before batching.",
+      "source": "cf.queues-pricing"
+    },
+    {
+      "driver": "Basin SQL",
+      "assumption": "Event search billed per TB scanned.",
+      "source": "cf.basin-pricing"
+    },
+    {
+      "driver": "Workspace writes",
+      "assumption": "Batched issue upserts; volume not modelled.",
+      "source": "cf.do-pricing"
+    }
   ],
   "decisions": [
     {
@@ -214,19 +566,78 @@
       "status": "proposed",
       "context": "GlitchTip stores events in partitioned Postgres and cold Parquet.",
       "options": [
-        { "name": "Events in TapeDB workspaces", "tradeoffs": "One writer per organization; storage and rows billed per event." },
-        { "name": "Events in Basin; issues in TapeDB", "tradeoffs": "Two stores; each fits its workload." }
+        {
+          "name": "Events in TapeDB workspaces",
+          "tradeoffs": "One writer per organization; storage and rows billed per event."
+        },
+        {
+          "name": "Events in Basin; issues in TapeDB",
+          "tradeoffs": "Two stores; each fits its workload."
+        }
       ],
       "choice": "Events in Basin; issues in TapeDB",
       "consequences": "Event search goes to Basin SQL; issue lists stay live through TapeDB.",
-      "evidence": ["td.bench", "cf.basin"]
+      "evidence": [
+        "td.bench",
+        "cf.basin"
+      ]
     }
   ],
   "tests": [
-    { "id": "t.select", "description": "Typed reads and writes in workerd and on staging", "command": "node scripts/e2e.mjs --only select (tapedb)", "runtime": "deployed", "result": "pass", "ranAt": "2026-11-26", "evidence": ["td.e2e"] },
-    { "id": "t.live-order", "description": "Live diffs keep order when rows move", "command": "node scripts/e2e.mjs --only live-order (tapedb)", "runtime": "deployed", "result": "pass", "ranAt": "2026-11-26", "evidence": ["td.e2e"] },
-    { "id": "t.webhooks", "description": "Signed webhooks delivered in order with retries", "command": "node scripts/e2e.mjs --only webhooks (tapedb)", "runtime": "workerd-local", "result": "pass", "ranAt": "2026-11-26", "evidence": ["td.e2e"] },
-    { "id": "t.fixture-ingest", "description": "Envelope accepted only after enqueue; poison message isolated", "runtime": "workerd-local", "result": "not-run" },
-    { "id": "t.fixture-grouping", "description": "Batched issue upserts from the consumer keep counts correct", "runtime": "workerd-local", "result": "not-run" }
+    {
+      "id": "t.select",
+      "description": "Typed reads and writes in workerd and on staging",
+      "command": "node scripts/e2e.mjs --only select (tapedb)",
+      "runtime": "deployed",
+      "result": "pass",
+      "ranAt": "2026-11-26",
+      "evidence": [
+        "td.e2e"
+      ]
+    },
+    {
+      "id": "t.live-order",
+      "description": "Live diffs keep order when rows move",
+      "command": "node scripts/e2e.mjs --only live-order (tapedb)",
+      "runtime": "deployed",
+      "result": "pass",
+      "ranAt": "2026-11-26",
+      "evidence": [
+        "td.e2e"
+      ]
+    },
+    {
+      "id": "t.webhooks",
+      "description": "Signed webhooks delivered in order with retries",
+      "command": "node scripts/e2e.mjs --only webhooks (tapedb)",
+      "runtime": "workerd-local",
+      "result": "pass",
+      "ranAt": "2026-11-26",
+      "evidence": [
+        "td.e2e"
+      ]
+    },
+    {
+      "id": "t.fixture-ingest",
+      "description": "Envelope accepted only after enqueue; unknown key refused; poison event retried, dead-lettered and recorded; siblings not held back",
+      "runtime": "workerd-local",
+      "result": "pass",
+      "command": "cd examples/ingest && npm test",
+      "ranAt": "2026-11-26",
+      "evidence": [
+        "fx.ingest"
+      ]
+    },
+    {
+      "id": "t.fixture-grouping",
+      "description": "Issues grouped by fingerprint; counts summed from per-message tallies; a redelivered message counts once",
+      "runtime": "workerd-local",
+      "result": "pass",
+      "command": "cd examples/ingest && npm test",
+      "ranAt": "2026-11-26",
+      "evidence": [
+        "fx.ingest"
+      ]
+    }
   ]
 }

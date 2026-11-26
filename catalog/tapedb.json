@@ -332,5 +332,23 @@
       "what": "Cross-workspace transactions, multi-writer",
       "use": "Design tenancy so a transaction stays in one workspace"
     }
+  ],
+  "findings": [
+    {
+      "id": "admin-api-no-defaults",
+      "checkedAt": "2026-11-26",
+      "evidence": [
+        "examples/ingest"
+      ],
+      "text": "POST /v1/transact applies wire ops as given: schema defaults are filled by the typed client, so an insert that omits a defaulted field is refused with invalid_op (\"requires attribute\"). API.md does not say so."
+    },
+    {
+      "id": "init-cli-bin",
+      "checkedAt": "2026-11-26",
+      "evidence": [
+        "https://github.com/tapedb/tapedb/pull/118"
+      ],
+      "text": "A project made by @tapedb/cli@0.4.1 init has no tapedb-cli bin, so the printed `npx tapedb-cli ...` runs the deprecated unscoped tapedb-cli@0.1.30 from the registry. Fixed in PR #118 (open). The fixtures here pin @tapedb/cli explicitly."
+    }
   ]
 }

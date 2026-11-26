@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "validate": "bun scripts/validate.ts",
-    "test": "bun test tests",
-    "check": "bun run test && bun run validate"
+    "test": "bun test tests/",
+    "check": "bun run test && bun run validate",
+    "test:fixtures": "cd examples/inbox && npm ci --silent && npm test && cd ../ingest && npm ci --silent && npm test"
   }
 }

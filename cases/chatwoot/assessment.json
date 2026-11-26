@@ -10,47 +10,334 @@
     "inspectedAt": "2026-11-26"
   },
   "evidence": [
-    { "id": "cw.license", "kind": "source", "ref": "LICENSE", "revision": "eb4fabb", "note": "MIT Expat outside enterprise/; enterprise/ has its own license. A clean-room rewrite copies no code from either." },
-    { "id": "cw.procfile", "kind": "manifest", "ref": "Procfile", "revision": "eb4fabb", "note": "web (Rails server) and worker (Sidekiq) processes." },
-    { "id": "cw.gemfile", "kind": "manifest", "ref": "Gemfile", "revision": "eb4fabb", "note": "Rails 8.0.5.2, pg, redis, sidekiq 7.3 with sidekiq-cron, searchkick, pg_search, pgvector/neighbor, devise with two-factor and token auth, omniauth (OAuth2, Google, SAML), aws-sdk-s3." },
-    { "id": "cw.sidekiq", "kind": "manifest", "ref": "config/sidekiq.yml", "revision": "eb4fabb", "note": "18 prioritised queues (critical to action_mailbox_incineration), max_retries 3, concurrency 10." },
-    { "id": "cw.schedule", "kind": "manifest", "ref": "config/schedule.yml", "revision": "eb4fabb", "note": "sidekiq-cron jobs: conversation monitors every minute, auto-resolution every 5 minutes, hourly and daily scheduled items, a 30-second voice ringing timeout." },
-    { "id": "cw.cable", "kind": "manifest", "ref": "config/cable.yml", "revision": "eb4fabb", "note": "ActionCable on Redis pub/sub." },
-    { "id": "cw.room", "kind": "source", "ref": "app/channels/room_channel.rb", "revision": "eb4fabb", "note": "One channel per account and user; streams account and user topics; broadcasts presence.update." },
-    { "id": "cw.presence", "kind": "source", "ref": "lib/online_status_tracker.rb", "revision": "eb4fabb", "note": "Presence as Redis sorted sets with 20 s (agents) and 90 s (contacts) windows." },
-    { "id": "cw.models", "kind": "source", "ref": "app/models/ (account, inbox, contact, conversation, message, team, label, macro, automation_rule, campaign, portal, article, notification, reporting_event, webhook, assignment_policy)", "revision": "eb4fabb", "note": "Relational domain model." },
-    { "id": "cw.channels", "kind": "source", "ref": "app/models/channel/ (api, email, facebook_page, instagram, line, sms, telegram, tiktok, twilio_sms, twitter_profile, web_widget, whatsapp)", "revision": "eb4fabb", "note": "Twelve channel types, each with provider-specific behaviour." },
-    { "id": "cw.webhook-job", "kind": "source", "ref": "app/jobs/webhook_job.rb", "revision": "eb4fabb", "note": "Outgoing webhooks are Sidekiq jobs on the medium queue, with a delivery id." },
-    { "id": "cw.search", "kind": "source", "ref": "app/models/message.rb (searchkick), app/models/article.rb (pg_search)", "revision": "eb4fabb", "note": "Message search through searchkick when advanced search is on; help-centre search with pg_search." },
-    { "id": "cw.embeddings", "kind": "source", "ref": "enterprise/app/models/article_embedding.rb, enterprise/app/services/captain/", "revision": "eb4fabb", "note": "Embeddings and the Captain assistant live under enterprise/." },
-    { "id": "td.catalog", "kind": "documentation", "ref": "catalog/tapedb.json", "checkedAt": "2026-11-26", "note": "TapeDB capability catalog in this repository." },
-    { "id": "td.e2e", "kind": "test", "ref": "tapedb scripts/e2e/*.mjs (select, live-order, relation-live, presence, broadcast, retry, file-rules, webhooks) at 0.4.1 (255c09b)", "checkedAt": "2026-11-26", "note": "Scenarios run under workerd locally and on staging.tapedb.dev in staging builds 2026-11-25/26." },
-    { "id": "td.bench", "kind": "run", "ref": "tapedb BENCHMARKS.md and bench/results (tapedb 0.4.1)", "checkedAt": "2026-11-26", "note": "Live updates to 200 subscribers in 62 ms p50 locally; presence fan-out 60 ms p50 at 200 peers." },
-    { "id": "td.webhooks", "kind": "source", "ref": "tapedb src/engine/webhooks.ts at 0.4.1 (255c09b)", "checkedAt": "2026-11-26", "note": "Transactional capture, delivery after R2 flush, retries to 30 min, dead letter after 24 h or 60 attempts." },
-    { "id": "cf.queues", "kind": "documentation", "ref": "https://developers.cloudflare.com/queues/configuration/batching-retries/", "checkedAt": "2026-11-26", "note": "At-least-once, batch retry, DLQ." },
-    { "id": "cf.workflows", "kind": "documentation", "ref": "https://developers.cloudflare.com/workflows/reference/limits/", "checkedAt": "2026-11-26", "note": "Durable steps, sleep up to 365 days." },
-    { "id": "cf.do-pricing", "kind": "pricing", "ref": "https://developers.cloudflare.com/durable-objects/platform/pricing/", "checkedAt": "2026-11-26", "note": "Durable Objects pricing." },
-    { "id": "cf.queues-pricing", "kind": "pricing", "ref": "https://developers.cloudflare.com/queues/platform/pricing/", "checkedAt": "2026-11-26", "note": "About 3 operations per message." }
+    {
+      "id": "cw.license",
+      "kind": "source",
+      "ref": "LICENSE",
+      "revision": "eb4fabb",
+      "note": "MIT Expat outside enterprise/; enterprise/ has its own license. A clean-room rewrite copies no code from either."
+    },
+    {
+      "id": "cw.procfile",
+      "kind": "manifest",
+      "ref": "Procfile",
+      "revision": "eb4fabb",
+      "note": "web (Rails server) and worker (Sidekiq) processes."
+    },
+    {
+      "id": "cw.gemfile",
+      "kind": "manifest",
+      "ref": "Gemfile",
+      "revision": "eb4fabb",
+      "note": "Rails 8.0.5.2, pg, redis, sidekiq 7.3 with sidekiq-cron, searchkick, pg_search, pgvector/neighbor, devise with two-factor and token auth, omniauth (OAuth2, Google, SAML), aws-sdk-s3."
+    },
+    {
+      "id": "cw.sidekiq",
+      "kind": "manifest",
+      "ref": "config/sidekiq.yml",
+      "revision": "eb4fabb",
+      "note": "18 prioritised queues (critical to action_mailbox_incineration), max_retries 3, concurrency 10."
+    },
+    {
+      "id": "cw.schedule",
+      "kind": "manifest",
+      "ref": "config/schedule.yml",
+      "revision": "eb4fabb",
+      "note": "sidekiq-cron jobs: conversation monitors every minute, auto-resolution every 5 minutes, hourly and daily scheduled items, a 30-second voice ringing timeout."
+    },
+    {
+      "id": "cw.cable",
+      "kind": "manifest",
+      "ref": "config/cable.yml",
+      "revision": "eb4fabb",
+      "note": "ActionCable on Redis pub/sub."
+    },
+    {
+      "id": "cw.room",
+      "kind": "source",
+      "ref": "app/channels/room_channel.rb",
+      "revision": "eb4fabb",
+      "note": "One channel per account and user; streams account and user topics; broadcasts presence.update."
+    },
+    {
+      "id": "cw.presence",
+      "kind": "source",
+      "ref": "lib/online_status_tracker.rb",
+      "revision": "eb4fabb",
+      "note": "Presence as Redis sorted sets with 20 s (agents) and 90 s (contacts) windows."
+    },
+    {
+      "id": "cw.models",
+      "kind": "source",
+      "ref": "app/models/ (account, inbox, contact, conversation, message, team, label, macro, automation_rule, campaign, portal, article, notification, reporting_event, webhook, assignment_policy)",
+      "revision": "eb4fabb",
+      "note": "Relational domain model."
+    },
+    {
+      "id": "cw.channels",
+      "kind": "source",
+      "ref": "app/models/channel/ (api, email, facebook_page, instagram, line, sms, telegram, tiktok, twilio_sms, twitter_profile, web_widget, whatsapp)",
+      "revision": "eb4fabb",
+      "note": "Twelve channel types, each with provider-specific behaviour."
+    },
+    {
+      "id": "cw.webhook-job",
+      "kind": "source",
+      "ref": "app/jobs/webhook_job.rb",
+      "revision": "eb4fabb",
+      "note": "Outgoing webhooks are Sidekiq jobs on the medium queue, with a delivery id."
+    },
+    {
+      "id": "cw.search",
+      "kind": "source",
+      "ref": "app/models/message.rb (searchkick), app/models/article.rb (pg_search)",
+      "revision": "eb4fabb",
+      "note": "Message search through searchkick when advanced search is on; help-centre search with pg_search."
+    },
+    {
+      "id": "cw.embeddings",
+      "kind": "source",
+      "ref": "enterprise/app/models/article_embedding.rb, enterprise/app/services/captain/",
+      "revision": "eb4fabb",
+      "note": "Embeddings and the Captain assistant live under enterprise/."
+    },
+    {
+      "id": "td.catalog",
+      "kind": "documentation",
+      "ref": "catalog/tapedb.json",
+      "checkedAt": "2026-11-26",
+      "note": "TapeDB capability catalog in this repository."
+    },
+    {
+      "id": "td.e2e",
+      "kind": "test",
+      "ref": "tapedb scripts/e2e/*.mjs (select, live-order, relation-live, presence, broadcast, retry, file-rules, webhooks) at 0.4.1 (255c09b)",
+      "checkedAt": "2026-11-26",
+      "note": "Scenarios run under workerd locally and on staging.tapedb.dev in staging builds 2026-11-25/26."
+    },
+    {
+      "id": "td.bench",
+      "kind": "run",
+      "ref": "tapedb BENCHMARKS.md and bench/results (tapedb 0.4.1)",
+      "checkedAt": "2026-11-26",
+      "note": "Live updates to 200 subscribers in 62 ms p50 locally; presence fan-out 60 ms p50 at 200 peers."
+    },
+    {
+      "id": "td.webhooks",
+      "kind": "source",
+      "ref": "tapedb src/engine/webhooks.ts at 0.4.1 (255c09b)",
+      "checkedAt": "2026-11-26",
+      "note": "Transactional capture, delivery after R2 flush, retries to 30 min, dead letter after 24 h or 60 attempts."
+    },
+    {
+      "id": "cf.queues",
+      "kind": "documentation",
+      "ref": "https://developers.cloudflare.com/queues/configuration/batching-retries/",
+      "checkedAt": "2026-11-26",
+      "note": "At-least-once, batch retry, DLQ."
+    },
+    {
+      "id": "cf.workflows",
+      "kind": "documentation",
+      "ref": "https://developers.cloudflare.com/workflows/reference/limits/",
+      "checkedAt": "2026-11-26",
+      "note": "Durable steps, sleep up to 365 days."
+    },
+    {
+      "id": "cf.do-pricing",
+      "kind": "pricing",
+      "ref": "https://developers.cloudflare.com/durable-objects/platform/pricing/",
+      "checkedAt": "2026-11-26",
+      "note": "Durable Objects pricing."
+    },
+    {
+      "id": "cf.queues-pricing",
+      "kind": "pricing",
+      "ref": "https://developers.cloudflare.com/queues/platform/pricing/",
+      "checkedAt": "2026-11-26",
+      "note": "About 3 operations per message."
+    },
+    {
+      "id": "fx.inbox",
+      "kind": "test",
+      "ref": "examples/inbox (test/inbox.test.mjs), @tapedb/tapedb 0.4.1 under tapedb dev",
+      "checkedAt": "2026-11-26",
+      "note": "4 tests in workerd: conversation with unread counts, a live count across two clients, 30 concurrent sends from three clients, and a wrong-workspace claim refused (403 wrong_workspace)."
+    }
   ],
   "features": [
-    { "id": "inbox", "name": "Inboxes, conversations, messages, assignment, labels, teams", "workload": "transactional", "evidence": ["cw.models"], "capabilities": ["domain-state", "tenant-isolation", "message-ordering"] },
-    { "id": "live-inbox", "name": "Live inbox and widget updates", "workload": "realtime", "evidence": ["cw.cable", "cw.room"], "capabilities": ["live-updates"] },
-    { "id": "presence", "name": "Agent and contact presence, typing", "workload": "realtime", "evidence": ["cw.presence", "cw.room"], "capabilities": ["presence"] },
-    { "id": "attachments", "name": "Message attachments", "workload": "object-storage", "evidence": ["cw.gemfile"], "capabilities": ["attachments"] },
-    { "id": "outgoing-webhooks", "name": "Account, inbox and bot webhooks", "workload": "asynchronous", "evidence": ["cw.webhook-job"], "capabilities": ["outgoing-webhooks"] },
-    { "id": "channel-delivery", "name": "Replies to email, WhatsApp, SMS and social channels", "workload": "asynchronous", "evidence": ["cw.channels", "cw.sidekiq"], "capabilities": ["provider-delivery", "inbound-channels"] },
-    { "id": "scheduled", "name": "Auto-resolution, SLA monitors, scheduled items", "workload": "asynchronous", "evidence": ["cw.schedule"], "capabilities": ["timers"] },
-    { "id": "search", "name": "Conversation and help-centre search", "workload": "transactional", "evidence": ["cw.search"], "capabilities": ["search"] },
-    { "id": "agent-auth", "name": "Agent sign-in with 2FA, SSO", "workload": "identity-protocol", "evidence": ["cw.gemfile"], "capabilities": ["agent-auth"] },
-    { "id": "reports", "name": "Reporting events and rollups", "workload": "analytical", "evidence": ["cw.models"], "capabilities": ["reports"] },
-    { "id": "ai", "name": "Captain assistant and article embeddings (enterprise)", "workload": "compute", "evidence": ["cw.embeddings"], "capabilities": ["ai-assist"] }
+    {
+      "id": "inbox",
+      "name": "Inboxes, conversations, messages, assignment, labels, teams",
+      "workload": "transactional",
+      "evidence": [
+        "cw.models"
+      ],
+      "capabilities": [
+        "domain-state",
+        "tenant-isolation",
+        "message-ordering"
+      ]
+    },
+    {
+      "id": "live-inbox",
+      "name": "Live inbox and widget updates",
+      "workload": "realtime",
+      "evidence": [
+        "cw.cable",
+        "cw.room"
+      ],
+      "capabilities": [
+        "live-updates"
+      ]
+    },
+    {
+      "id": "presence",
+      "name": "Agent and contact presence, typing",
+      "workload": "realtime",
+      "evidence": [
+        "cw.presence",
+        "cw.room"
+      ],
+      "capabilities": [
+        "presence"
+      ]
+    },
+    {
+      "id": "attachments",
+      "name": "Message attachments",
+      "workload": "object-storage",
+      "evidence": [
+        "cw.gemfile"
+      ],
+      "capabilities": [
+        "attachments"
+      ]
+    },
+    {
+      "id": "outgoing-webhooks",
+      "name": "Account, inbox and bot webhooks",
+      "workload": "asynchronous",
+      "evidence": [
+        "cw.webhook-job"
+      ],
+      "capabilities": [
+        "outgoing-webhooks"
+      ]
+    },
+    {
+      "id": "channel-delivery",
+      "name": "Replies to email, WhatsApp, SMS and social channels",
+      "workload": "asynchronous",
+      "evidence": [
+        "cw.channels",
+        "cw.sidekiq"
+      ],
+      "capabilities": [
+        "provider-delivery",
+        "inbound-channels"
+      ]
+    },
+    {
+      "id": "scheduled",
+      "name": "Auto-resolution, SLA monitors, scheduled items",
+      "workload": "asynchronous",
+      "evidence": [
+        "cw.schedule"
+      ],
+      "capabilities": [
+        "timers"
+      ]
+    },
+    {
+      "id": "search",
+      "name": "Conversation and help-centre search",
+      "workload": "transactional",
+      "evidence": [
+        "cw.search"
+      ],
+      "capabilities": [
+        "search"
+      ]
+    },
+    {
+      "id": "agent-auth",
+      "name": "Agent sign-in with 2FA, SSO",
+      "workload": "identity-protocol",
+      "evidence": [
+        "cw.gemfile"
+      ],
+      "capabilities": [
+        "agent-auth"
+      ]
+    },
+    {
+      "id": "reports",
+      "name": "Reporting events and rollups",
+      "workload": "analytical",
+      "evidence": [
+        "cw.models"
+      ],
+      "capabilities": [
+        "reports"
+      ]
+    },
+    {
+      "id": "ai",
+      "name": "Captain assistant and article embeddings (enterprise)",
+      "workload": "compute",
+      "evidence": [
+        "cw.embeddings"
+      ],
+      "capabilities": [
+        "ai-assist"
+      ]
+    }
   ],
   "dependencies": [
-    { "name": "PostgreSQL (with pgvector)", "role": "primary store", "required": true, "evidence": ["cw.gemfile"] },
-    { "name": "Redis", "role": "ActionCable pub/sub, Sidekiq, presence", "required": true, "evidence": ["cw.cable", "cw.presence", "cw.sidekiq"] },
-    { "name": "Sidekiq and sidekiq-cron", "role": "background jobs and schedules", "required": true, "evidence": ["cw.procfile", "cw.schedule"] },
-    { "name": "Elasticsearch/OpenSearch via searchkick", "role": "advanced message search", "required": false, "evidence": ["cw.search"] },
-    { "name": "S3-compatible storage", "role": "attachments", "required": false, "evidence": ["cw.gemfile"] }
+    {
+      "name": "PostgreSQL (with pgvector)",
+      "role": "primary store",
+      "required": true,
+      "evidence": [
+        "cw.gemfile"
+      ]
+    },
+    {
+      "name": "Redis",
+      "role": "ActionCable pub/sub, Sidekiq, presence",
+      "required": true,
+      "evidence": [
+        "cw.cable",
+        "cw.presence",
+        "cw.sidekiq"
+      ]
+    },
+    {
+      "name": "Sidekiq and sidekiq-cron",
+      "role": "background jobs and schedules",
+      "required": true,
+      "evidence": [
+        "cw.procfile",
+        "cw.schedule"
+      ]
+    },
+    {
+      "name": "Elasticsearch/OpenSearch via searchkick",
+      "role": "advanced message search",
+      "required": false,
+      "evidence": [
+        "cw.search"
+      ]
+    },
+    {
+      "name": "S3-compatible storage",
+      "role": "attachments",
+      "required": false,
+      "evidence": [
+        "cw.gemfile"
+      ]
+    }
   ],
   "workloadAssumptions": [
     "One TapeDB workspace per Chatwoot account; a busy account's inbox writes go through one writer.",
@@ -59,11 +346,31 @@
   "architecture": {
     "summary": "A compatible rewrite: TapeDB workspaces per account hold the domain model with access rules; live queries replace ActionCable for inbox and widget; TapeDB presence and broadcast replace the Redis presence set and typing signals; R2 files hold attachments; TapeDB webhooks trigger outgoing events; Queues and Workflows carry provider delivery, retries, SLA timers and auto-resolution, with a delivery ledger in the workspace. No second WebSocket server and no per-conversation Durable Object.",
     "components": [
-      { "name": "Account workspace", "primitive": "TapeDB workspace", "responsibility": "contacts, conversations, messages, teams, labels, assignment, unread counts" },
-      { "name": "Inbox UI and widget", "primitive": "TapeDB live queries, presence, broadcast, client outbox", "responsibility": "live lists, typing, availability, offline drafts" },
-      { "name": "Attachments", "primitive": "TapeDB files on R2", "responsibility": "uploads with file rules" },
-      { "name": "Delivery", "primitive": "TapeDB webhooks into Queues; Workflows for multi-step delivery", "responsibility": "provider sends, retries, dead letters, ledger updates" },
-      { "name": "Timers", "primitive": "Workflows (sleep, waitForEvent) or Cron Triggers", "responsibility": "auto-resolve, SLA breaches, scheduled campaigns" }
+      {
+        "name": "Account workspace",
+        "primitive": "TapeDB workspace",
+        "responsibility": "contacts, conversations, messages, teams, labels, assignment, unread counts"
+      },
+      {
+        "name": "Inbox UI and widget",
+        "primitive": "TapeDB live queries, presence, broadcast, client outbox",
+        "responsibility": "live lists, typing, availability, offline drafts"
+      },
+      {
+        "name": "Attachments",
+        "primitive": "TapeDB files on R2",
+        "responsibility": "uploads with file rules"
+      },
+      {
+        "name": "Delivery",
+        "primitive": "TapeDB webhooks into Queues; Workflows for multi-step delivery",
+        "responsibility": "provider sends, retries, dead letters, ledger updates"
+      },
+      {
+        "name": "Timers",
+        "primitive": "Workflows (sleep, waitForEvent) or Cron Triggers",
+        "responsibility": "auto-resolve, SLA breaches, scheduled campaigns"
+      }
     ]
   },
   "capabilities": [
@@ -71,113 +378,192 @@
       "id": "domain-state",
       "description": "Typed domain model with serializable writes per account",
       "workload": "transactional",
-      "upstreamEvidence": ["cw.models"],
+      "upstreamEvidence": [
+        "cw.models"
+      ],
       "candidate": "TapeDB models and transactions in one workspace per account",
-      "candidateEvidence": ["td.catalog", "td.e2e"],
+      "candidateEvidence": [
+        "td.catalog",
+        "td.e2e",
+        "fx.inbox"
+      ],
       "status": "partial",
-      "gaps": ["The Chatwoot schema is not modelled yet; only the primitive is verified."],
+      "gaps": [
+        "The fixture models contacts, conversations, messages, assignment and unread; teams, labels, macros, automation rules, campaigns and the help centre are not modelled."
+      ],
       "owner": "application",
-      "acceptanceTests": ["t.select", "t.fixture-inbox"],
+      "acceptanceTests": [
+        "t.select",
+        "t.fixture-inbox"
+      ],
       "decision": "reuse"
     },
     {
       "id": "tenant-isolation",
       "description": "No account sees another's data",
       "workload": "transactional",
-      "upstreamEvidence": ["cw.models"],
+      "upstreamEvidence": [
+        "cw.models"
+      ],
       "candidate": "A workspace per account; claims are scoped to one workspace",
-      "candidateEvidence": ["td.catalog"],
-      "status": "unverified",
-      "gaps": ["Isolation of the fixture's routes not tested yet."],
+      "candidateEvidence": [
+        "td.catalog",
+        "fx.inbox"
+      ],
+      "status": "verified",
+      "gaps": [],
       "owner": "application",
-      "acceptanceTests": ["t.fixture-isolation"],
+      "acceptanceTests": [
+        "t.fixture-isolation"
+      ],
       "decision": "reuse"
     },
     {
       "id": "message-ordering",
       "description": "Messages ordered within a conversation, including under concurrent sends",
       "workload": "transactional",
-      "upstreamEvidence": ["cw.models"],
+      "upstreamEvidence": [
+        "cw.models"
+      ],
       "candidate": "TapeDB's single writer and log sequence",
-      "candidateEvidence": ["td.e2e"],
+      "candidateEvidence": [
+        "td.e2e",
+        "fx.inbox"
+      ],
       "status": "partial",
-      "gaps": ["Ordering of provider-delivered inbound messages depends on provider timestamps and is not covered."],
+      "gaps": [
+        "Ordering of provider-delivered inbound messages depends on provider timestamps and is not covered."
+      ],
       "owner": "application",
-      "acceptanceTests": ["t.live-order"],
+      "acceptanceTests": [
+        "t.live-order"
+      ],
       "decision": "reuse"
     },
     {
       "id": "live-updates",
       "description": "Live inbox, conversation and widget views",
       "workload": "realtime",
-      "upstreamEvidence": ["cw.cable", "cw.room"],
+      "upstreamEvidence": [
+        "cw.cable",
+        "cw.room"
+      ],
       "candidate": "TapeDB live queries over one socket per workspace",
-      "candidateEvidence": ["td.e2e", "td.bench"],
+      "candidateEvidence": [
+        "td.e2e",
+        "td.bench",
+        "fx.inbox"
+      ],
       "status": "verified",
       "gaps": [],
       "owner": "tapedb",
-      "acceptanceTests": ["t.relation-live", "t.live-order"],
+      "acceptanceTests": [
+        "t.relation-live",
+        "t.live-order"
+      ],
       "decision": "reuse"
     },
     {
       "id": "presence",
       "description": "Agent and contact presence and typing indicators",
       "workload": "realtime",
-      "upstreamEvidence": ["cw.presence", "cw.room"],
+      "upstreamEvidence": [
+        "cw.presence",
+        "cw.room"
+      ],
       "candidate": "TapeDB presence for availability; broadcast topics for typing",
-      "candidateEvidence": ["td.e2e", "td.bench"],
+      "candidateEvidence": [
+        "td.e2e",
+        "td.bench"
+      ],
       "status": "partial",
-      "gaps": ["Presence fan-out grows with the square of the room (60 ms p50 at 200 peers); large accounts should scope presence rooms per inbox or team.", "Upstream keeps contacts present for 90 s across widget pings; TapeDB presence ends with the socket."],
+      "gaps": [
+        "Presence fan-out grows with the square of the room (60 ms p50 at 200 peers); large accounts should scope presence rooms per inbox or team.",
+        "Upstream keeps contacts present for 90 s across widget pings; TapeDB presence ends with the socket."
+      ],
       "owner": "application",
-      "acceptanceTests": ["t.presence", "t.broadcast"],
+      "acceptanceTests": [
+        "t.presence",
+        "t.broadcast"
+      ],
       "decision": "reuse"
     },
     {
       "id": "attachments",
       "description": "Attachments with per-conversation authorization",
       "workload": "object-storage",
-      "upstreamEvidence": ["cw.gemfile"],
+      "upstreamEvidence": [
+        "cw.gemfile"
+      ],
       "candidate": "TapeDB files on R2 with file rules",
-      "candidateEvidence": ["td.e2e"],
+      "candidateEvidence": [
+        "td.e2e"
+      ],
       "status": "partial",
-      "gaps": ["File rules decide per file path; mapping them to conversation membership is application work."],
+      "gaps": [
+        "File rules decide per file path; mapping them to conversation membership is application work."
+      ],
       "owner": "application",
-      "acceptanceTests": ["t.file-rules"],
+      "acceptanceTests": [
+        "t.file-rules"
+      ],
       "decision": "reuse"
     },
     {
       "id": "outgoing-webhooks",
       "description": "Signed outgoing webhooks for account events",
       "workload": "asynchronous",
-      "upstreamEvidence": ["cw.webhook-job"],
+      "upstreamEvidence": [
+        "cw.webhook-job"
+      ],
       "candidate": "TapeDB webhooks (transactional capture, signed, ordered per endpoint, at-least-once)",
-      "candidateEvidence": ["td.webhooks", "td.e2e"],
+      "candidateEvidence": [
+        "td.webhooks",
+        "td.e2e"
+      ],
       "status": "partial",
-      "gaps": ["TapeDB's payload is a row change; Chatwoot's webhook payloads are event-shaped (message_created, conversation_status_changed) and need a mapping.", "Delivery inspection and retry shipped in 0.4.1 ($webhooks, $webhookRetry)."],
+      "gaps": [
+        "TapeDB's payload is a row change; Chatwoot's webhook payloads are event-shaped (message_created, conversation_status_changed) and need a mapping.",
+        "Delivery inspection and retry shipped in 0.4.1 ($webhooks, $webhookRetry)."
+      ],
       "owner": "application",
-      "acceptanceTests": ["t.webhooks"],
+      "acceptanceTests": [
+        "t.webhooks"
+      ],
       "decision": "reuse"
     },
     {
       "id": "provider-delivery",
       "description": "Outbound replies through email, WhatsApp, SMS and social providers",
       "workload": "asynchronous",
-      "upstreamEvidence": ["cw.channels", "cw.sidekiq"],
+      "upstreamEvidence": [
+        "cw.channels",
+        "cw.sidekiq"
+      ],
       "candidate": "Queues consumers per provider, fed by TapeDB webhooks or direct sends, with a delivery ledger row per message in the workspace",
       "status": "unverified",
-      "gaps": ["No exactly-once: providers may receive a message twice; the ledger and provider idempotency keys bound it.", "Provider quotas and channel rules are per provider."],
+      "gaps": [
+        "No exactly-once: providers may receive a message twice; the ledger and provider idempotency keys bound it.",
+        "Provider quotas and channel rules are per provider."
+      ],
       "owner": "application",
-      "acceptanceTests": ["t.fixture-delivery"],
+      "acceptanceTests": [
+        "t.fixture-delivery"
+      ],
       "decision": "external"
     },
     {
       "id": "inbound-channels",
       "description": "Inbound provider webhooks with signature verification",
       "workload": "asynchronous",
-      "upstreamEvidence": ["cw.channels"],
+      "upstreamEvidence": [
+        "cw.channels"
+      ],
       "candidate": "Worker routes per provider writing to the account workspace",
       "status": "unverified",
-      "gaps": ["Provider-specific."],
+      "gaps": [
+        "Provider-specific."
+      ],
       "owner": "application",
       "acceptanceTests": [],
       "decision": "external"
@@ -186,10 +572,14 @@
       "id": "timers",
       "description": "Auto-resolution, SLA monitors and scheduled items",
       "workload": "asynchronous",
-      "upstreamEvidence": ["cw.schedule"],
+      "upstreamEvidence": [
+        "cw.schedule"
+      ],
       "candidate": "Workflows (sleep and waitForEvent per conversation) or Cron Triggers scanning workspaces",
       "status": "unverified",
-      "gaps": ["A per-conversation Workflow per SLA is a design choice not yet benchmarked against a cron scan."],
+      "gaps": [
+        "A per-conversation Workflow per SLA is a design choice not yet benchmarked against a cron scan."
+      ],
       "owner": "application",
       "acceptanceTests": [],
       "decision": "external"
@@ -198,10 +588,15 @@
       "id": "search",
       "description": "Message and help-centre search",
       "workload": "transactional",
-      "upstreamEvidence": ["cw.search"],
+      "upstreamEvidence": [
+        "cw.search"
+      ],
       "candidate": "TapeDB filters ($ilike) for simple search; TapeDB vector and hybrid search (one indexed model) for the knowledge base",
       "status": "unverified",
-      "gaps": ["No full-text index across messages in TapeDB; $ilike scans.", "Vector search indexes one model per deployment."],
+      "gaps": [
+        "No full-text index across messages in TapeDB; $ilike scans.",
+        "Vector search indexes one model per deployment."
+      ],
       "owner": "application",
       "acceptanceTests": [],
       "decision": "reuse"
@@ -210,11 +605,17 @@
       "id": "agent-auth",
       "description": "Agent sign-in, 2FA, SSO",
       "workload": "identity-protocol",
-      "upstreamEvidence": ["cw.gemfile"],
+      "upstreamEvidence": [
+        "cw.gemfile"
+      ],
       "candidate": "TapeDB built-in auth (Better Auth) with membership roles",
-      "candidateEvidence": ["td.catalog"],
+      "candidateEvidence": [
+        "td.catalog"
+      ],
       "status": "partial",
-      "gaps": ["SAML SSO (omniauth-saml upstream) is not provided."],
+      "gaps": [
+        "SAML SSO (omniauth-saml upstream) is not provided."
+      ],
       "owner": "application",
       "acceptanceTests": [],
       "decision": "reuse"
@@ -223,10 +624,14 @@
       "id": "reports",
       "description": "Reporting events and rollups",
       "workload": "analytical",
-      "upstreamEvidence": ["cw.models"],
+      "upstreamEvidence": [
+        "cw.models"
+      ],
       "candidate": "TapeDB aggregates and named SQL within an account; Basin for cross-account analytics",
       "status": "unverified",
-      "gaps": ["TapeDB is not a warehouse; cross-account reports need a separate store."],
+      "gaps": [
+        "TapeDB is not a warehouse; cross-account reports need a separate store."
+      ],
       "owner": "application",
       "acceptanceTests": [],
       "decision": "reuse"
@@ -235,7 +640,9 @@
       "id": "ai-assist",
       "description": "AI assistant and embeddings",
       "workload": "compute",
-      "upstreamEvidence": ["cw.embeddings"],
+      "upstreamEvidence": [
+        "cw.embeddings"
+      ],
       "candidate": "Not assessed; enterprise-licensed upstream",
       "status": "not-applicable",
       "gaps": [],
@@ -245,12 +652,28 @@
     }
   ],
   "risks": [
-    { "id": "r.hot-account", "description": "A large account's writes and presence all go through one workspace.", "mitigation": "Benchmark with the fixture; scope presence rooms per inbox; split an account only if measurements demand it." },
-    { "id": "r.duplicate-delivery", "description": "At-least-once queues can send a reply twice.", "mitigation": "Ledger row per outbound message with a provider idempotency key where the provider supports one." }
+    {
+      "id": "r.hot-account",
+      "description": "A large account's writes and presence all go through one workspace.",
+      "mitigation": "Benchmark with the fixture; scope presence rooms per inbox; split an account only if measurements demand it."
+    },
+    {
+      "id": "r.duplicate-delivery",
+      "description": "At-least-once queues can send a reply twice.",
+      "mitigation": "Ledger row per outbound message with a provider idempotency key where the provider supports one."
+    }
   ],
   "costAssumptions": [
-    { "driver": "Workspace requests and rows", "assumption": "Every message write and live re-run is billed as Durable Object requests and rows; not modelled yet.", "source": "cf.do-pricing" },
-    { "driver": "Queue operations", "assumption": "About 3 operations per outbound message plus 1 read per retry.", "source": "cf.queues-pricing" }
+    {
+      "driver": "Workspace requests and rows",
+      "assumption": "Every message write and live re-run is billed as Durable Object requests and rows; not modelled yet.",
+      "source": "cf.do-pricing"
+    },
+    {
+      "driver": "Queue operations",
+      "assumption": "About 3 operations per outbound message plus 1 read per retry.",
+      "source": "cf.queues-pricing"
+    }
   ],
   "decisions": [
     {
@@ -259,12 +682,21 @@
       "status": "proposed",
       "context": "Chatwoot uses ActionCable on Redis for live updates and presence.",
       "options": [
-        { "name": "TapeDB live queries and presence", "tradeoffs": "No extra service; verified primitives; presence fan-out limits large rooms." },
-        { "name": "A separate WebSocket Durable Object per conversation", "tradeoffs": "Duplicates TapeDB's socket and invalidation; two sources of truth." }
+        {
+          "name": "TapeDB live queries and presence",
+          "tradeoffs": "No extra service; verified primitives; presence fan-out limits large rooms."
+        },
+        {
+          "name": "A separate WebSocket Durable Object per conversation",
+          "tradeoffs": "Duplicates TapeDB's socket and invalidation; two sources of truth."
+        }
       ],
       "choice": "TapeDB live queries and presence",
       "consequences": "One socket per account workspace per client; presence rooms are scoped to keep fan-out small.",
-      "evidence": ["td.e2e", "td.bench"]
+      "evidence": [
+        "td.e2e",
+        "td.bench"
+      ]
     },
     {
       "id": "d.jobs",
@@ -272,24 +704,129 @@
       "status": "proposed",
       "context": "Chatwoot runs 18 Sidekiq queues and cron schedules.",
       "options": [
-        { "name": "TapeDB webhooks as the job system", "tradeoffs": "Webhooks are row-change delivery to an endpoint, not a job queue; no scheduling." },
-        { "name": "Queues and Workflows fed by TapeDB webhooks", "tradeoffs": "Two systems to operate; each does what it is for." }
+        {
+          "name": "TapeDB webhooks as the job system",
+          "tradeoffs": "Webhooks are row-change delivery to an endpoint, not a job queue; no scheduling."
+        },
+        {
+          "name": "Queues and Workflows fed by TapeDB webhooks",
+          "tradeoffs": "Two systems to operate; each does what it is for."
+        }
       ],
       "choice": "Queues and Workflows fed by TapeDB webhooks",
       "consequences": "A delivery ledger in the workspace reconciles what the queue did.",
-      "evidence": ["td.webhooks", "cf.queues", "cf.workflows"]
+      "evidence": [
+        "td.webhooks",
+        "cf.queues",
+        "cf.workflows"
+      ]
     }
   ],
   "tests": [
-    { "id": "t.select", "description": "Typed reads and writes in workerd and on staging", "command": "node scripts/e2e.mjs --only select (tapedb)", "runtime": "deployed", "result": "pass", "ranAt": "2026-11-26", "evidence": ["td.e2e"] },
-    { "id": "t.live-order", "description": "Live diffs keep order when rows move", "command": "node scripts/e2e.mjs --only live-order (tapedb)", "runtime": "deployed", "result": "pass", "ranAt": "2026-11-26", "evidence": ["td.e2e"] },
-    { "id": "t.relation-live", "description": "Live queries over relations update", "command": "node scripts/e2e.mjs --only relation-live (tapedb)", "runtime": "deployed", "result": "pass", "ranAt": "2026-11-26", "evidence": ["td.e2e"] },
-    { "id": "t.presence", "description": "Presence rooms, refusals and peer lists", "command": "node scripts/e2e.mjs --only presence (tapedb)", "runtime": "deployed", "result": "pass", "ranAt": "2026-11-26", "evidence": ["td.e2e"] },
-    { "id": "t.broadcast", "description": "Broadcast topics between clients", "command": "node scripts/e2e.mjs --only broadcast (tapedb)", "runtime": "deployed", "result": "pass", "ranAt": "2026-11-26", "evidence": ["td.e2e"] },
-    { "id": "t.file-rules", "description": "File rules decide reads and writes", "command": "node scripts/e2e.mjs --only file-rules (tapedb)", "runtime": "deployed", "result": "pass", "ranAt": "2026-11-26", "evidence": ["td.e2e"] },
-    { "id": "t.webhooks", "description": "Signed webhooks delivered in order with retries", "command": "node scripts/e2e.mjs --only webhooks (tapedb)", "runtime": "workerd-local", "result": "pass", "ranAt": "2026-11-26", "evidence": ["td.e2e"] },
-    { "id": "t.fixture-inbox", "description": "The inbox fixture: conversation, messages, assignment, unread counts", "runtime": "workerd-local", "result": "not-run" },
-    { "id": "t.fixture-isolation", "description": "Two accounts cannot read each other", "runtime": "workerd-local", "result": "not-run" },
-    { "id": "t.fixture-delivery", "description": "Outbound delivery with a failing provider: retries, dead letter, ledger", "runtime": "workerd-local", "result": "not-run" }
+    {
+      "id": "t.select",
+      "description": "Typed reads and writes in workerd and on staging",
+      "command": "node scripts/e2e.mjs --only select (tapedb)",
+      "runtime": "deployed",
+      "result": "pass",
+      "ranAt": "2026-11-26",
+      "evidence": [
+        "td.e2e"
+      ]
+    },
+    {
+      "id": "t.live-order",
+      "description": "Live diffs keep order when rows move",
+      "command": "node scripts/e2e.mjs --only live-order (tapedb)",
+      "runtime": "deployed",
+      "result": "pass",
+      "ranAt": "2026-11-26",
+      "evidence": [
+        "td.e2e"
+      ]
+    },
+    {
+      "id": "t.relation-live",
+      "description": "Live queries over relations update",
+      "command": "node scripts/e2e.mjs --only relation-live (tapedb)",
+      "runtime": "deployed",
+      "result": "pass",
+      "ranAt": "2026-11-26",
+      "evidence": [
+        "td.e2e"
+      ]
+    },
+    {
+      "id": "t.presence",
+      "description": "Presence rooms, refusals and peer lists",
+      "command": "node scripts/e2e.mjs --only presence (tapedb)",
+      "runtime": "deployed",
+      "result": "pass",
+      "ranAt": "2026-11-26",
+      "evidence": [
+        "td.e2e"
+      ]
+    },
+    {
+      "id": "t.broadcast",
+      "description": "Broadcast topics between clients",
+      "command": "node scripts/e2e.mjs --only broadcast (tapedb)",
+      "runtime": "deployed",
+      "result": "pass",
+      "ranAt": "2026-11-26",
+      "evidence": [
+        "td.e2e"
+      ]
+    },
+    {
+      "id": "t.file-rules",
+      "description": "File rules decide reads and writes",
+      "command": "node scripts/e2e.mjs --only file-rules (tapedb)",
+      "runtime": "deployed",
+      "result": "pass",
+      "ranAt": "2026-11-26",
+      "evidence": [
+        "td.e2e"
+      ]
+    },
+    {
+      "id": "t.webhooks",
+      "description": "Signed webhooks delivered in order with retries",
+      "command": "node scripts/e2e.mjs --only webhooks (tapedb)",
+      "runtime": "workerd-local",
+      "result": "pass",
+      "ranAt": "2026-11-26",
+      "evidence": [
+        "td.e2e"
+      ]
+    },
+    {
+      "id": "t.fixture-inbox",
+      "description": "Inbox fixture: conversation, messages, unread as a live count, 30 concurrent sends all land in order",
+      "runtime": "workerd-local",
+      "result": "pass",
+      "command": "cd examples/inbox && npm test",
+      "ranAt": "2026-11-26",
+      "evidence": [
+        "fx.inbox"
+      ]
+    },
+    {
+      "id": "t.fixture-isolation",
+      "description": "A claim for one account presented to another's workspace is refused (403 wrong_workspace)",
+      "runtime": "workerd-local",
+      "result": "pass",
+      "command": "cd examples/inbox && npm test",
+      "ranAt": "2026-11-26",
+      "evidence": [
+        "fx.inbox"
+      ]
+    },
+    {
+      "id": "t.fixture-delivery",
+      "description": "Outbound delivery with a failing provider: retries, dead letter, ledger",
+      "runtime": "workerd-local",
+      "result": "not-run"
+    }
   ]
 }
