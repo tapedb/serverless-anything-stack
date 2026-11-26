@@ -3,13 +3,13 @@
   "checkedAt": "2026-11-26",
   "source": "https://github.com/tapedb/tapedb",
   "release": {
-    "version": "0.3.6",
-    "commit": "7504b12",
-    "note": "Version and commit read from origin/main on 2026-11-26. The npm registry was not checked."
+    "version": "0.4.1",
+    "commit": "255c09b",
+    "npm": "@tapedb/tapedb@0.4.1 (latest)",
+    "note": "Checked 2026-11-26 by a fresh install from the npm registry. 0.4.0 is deprecated: it was packed from a stale build."
   },
   "statusMeaning": {
-    "released": "On main at the commit above, documented in API.md.",
-    "pending": "Built and tested on a branch with an open pull request; not in a release. Do not depend on it until it ships.",
+    "released": "In @tapedb/tapedb 0.4.1 on npm, documented in API.md.",
     "documentation": "A measured fact or a decision record, not an API."
   },
   "entries": [
@@ -23,57 +23,87 @@
       ],
       "limits": [
         "A transaction or join stays in one workspace; no cross-workspace atomic writes and no active-active.",
-        "One writer per workspace: past about 4 concurrent writers, latency rises instead of throughput (local benchmark, BENCHMARKS.md in PR #109)."
+        "One writer per workspace: past about 4 concurrent writers, latency rises instead of throughput (local benchmark, BENCHMARKS.md)."
       ],
-      "evidence": ["LIMITATIONS.md#design", "API.md"]
+      "evidence": [
+        "LIMITATIONS.md#design",
+        "API.md"
+      ]
     },
     {
       "id": "access-rules",
       "name": "Role and row-level read and write rules",
       "status": "released",
-      "guarantees": ["role(), filter() and check() rules per action; filter() compiles into SQL."],
-      "limits": ["check() runs after fetch and is scan-capped (LIMITATIONS.md)."],
-      "evidence": ["API.md"]
+      "guarantees": [
+        "role(), filter() and check() rules per action; filter() compiles into SQL."
+      ],
+      "limits": [
+        "check() runs after fetch and is scan-capped (LIMITATIONS.md)."
+      ],
+      "evidence": [
+        "API.md"
+      ]
     },
     {
       "id": "live-queries",
       "name": "Live queries with diffs over one socket per workspace",
       "status": "released",
-      "guarantees": ["Identical subscriptions share one re-run per flush.", "Diffs carry order when rows move."],
+      "guarantees": [
+        "Identical subscriptions share one re-run per flush.",
+        "Diffs carry order when rows move."
+      ],
       "limits": [
         "Each write re-runs the live queries on the models it touches, before the next request is served (about 18 ms per write at 100 live queries, engine benchmark).",
-        "200 subscribers saw each write within 62 ms p50 and 112 ms p99 locally (PR #109)."
+        "200 subscribers saw each write within 62 ms p50 and 112 ms p99 locally."
       ],
-      "evidence": ["API.md", "BENCHMARKS.md (PR #108, #109)"]
+      "evidence": [
+        "API.md",
+        "BENCHMARKS.md"
+      ]
     },
     {
       "id": "presence-broadcast",
       "name": "Presence rooms and broadcast topics",
       "status": "released",
       "maturity": "experimental (API.md)",
-      "guarantees": ["Ephemeral; topic replay for listeners that reconnect within realtime.replaySeconds (default 60)."],
+      "guarantees": [
+        "Ephemeral; topic replay for listeners that reconnect within realtime.replaySeconds (default 60)."
+      ],
       "limits": [
         "At most realtime.maxPresenceRooms rooms per socket (default 4).",
-        "Presence fan-out grows with the square of the room: every update sends the full peer list to every peer (60 ms p50 at 200 peers against 15 ms for a broadcast, local, PR #109).",
+        "Presence fan-out grows with the square of the room: every update sends the full peer list to every peer (60 ms p50 at 200 peers against 15 ms for a broadcast, local; BENCHMARKS.md).",
         "Socket JSON messages bounded to 4 MiB; topic replay bounded to 8 MiB per workspace."
       ],
-      "evidence": ["API.md#presence", "LIMITATIONS.md"]
+      "evidence": [
+        "API.md#presence",
+        "LIMITATIONS.md"
+      ]
     },
     {
       "id": "client-outbox",
       "name": "Optimistic, offline-capable client writes",
       "status": "released",
-      "guarantees": ["Queued writes carry a clientTxId; the engine dedupes retries from permanent receipts."],
-      "limits": ["Durable only if the outbox store is (MemoryOutbox is not)."],
-      "evidence": ["API.md#offline-queue"]
+      "guarantees": [
+        "Queued writes carry a clientTxId; the engine dedupes retries from permanent receipts."
+      ],
+      "limits": [
+        "Durable only if the outbox store is (MemoryOutbox is not)."
+      ],
+      "evidence": [
+        "API.md#offline-queue"
+      ]
     },
     {
       "id": "files",
       "name": "R2 files with an indexed file table and file rules",
       "status": "released",
-      "guarantees": ["Multipart uploads; file rules decide reads and writes per file."],
+      "guarantees": [
+        "Multipart uploads; file rules decide reads and writes per file."
+      ],
       "limits": [],
-      "evidence": ["API.md"]
+      "evidence": [
+        "API.md"
+      ]
     },
     {
       "id": "durability-recovery",
@@ -86,7 +116,11 @@
       "limits": [
         "R2 trails commits by up to the 30 s durability alarm delay plus the flush; recovery after losing the object's storage starts from R2."
       ],
-      "evidence": ["ARCHITECTURE.md", "RELEASING.md", "staging builds 2026-11-25/26"]
+      "evidence": [
+        "ARCHITECTURE.md",
+        "RELEASING.md",
+        "staging builds 2026-11-25/26"
+      ]
     },
     {
       "id": "webhooks",
@@ -98,28 +132,43 @@
         "At-least-once, signed, stable event id, ordered per endpoint."
       ],
       "limits": [
-        "First retry 30 s, doubling to at most 30 min; dead-lettered after 24 h or 60 attempts (src/engine/webhooks.ts at 7504b12).",
+        "First retry 30 s, doubling to at most 30 min; dead-lettered after 24 h or 60 attempts (src/engine/webhooks.ts in 0.4.1).",
         "A failing head event holds back its endpoint's later events.",
         "Not a general job queue; no exactly-once delivery."
       ],
-      "evidence": ["src/engine/webhooks.ts", "API.md"]
+      "evidence": [
+        "src/engine/webhooks.ts",
+        "API.md"
+      ]
     },
     {
       "id": "webhook-operations",
       "name": "Inspect stuck webhooks and retry them",
-      "status": "pending",
-      "pr": "https://github.com/tapedb/tapedb/pull/110",
-      "guarantees": ["GET /webhooks, GET /webhooks/deliveries, POST /webhooks/retry; a retry re-queues the original event (same id, sequence and signed body)."],
-      "limits": ["Staging green; the webhooks e2e scenario only runs locally (a deployed Worker cannot reach its receiver)."],
-      "evidence": ["PR #110"]
+      "status": "released",
+      "guarantees": [
+        "GET /webhooks, GET /webhooks/deliveries, POST /webhooks/retry; a retry re-queues the original event (same id, sequence and signed body)."
+      ],
+      "limits": [
+        "Staging green; the webhooks e2e scenario only runs locally (a deployed Worker cannot reach its receiver)."
+      ],
+      "evidence": [
+        "CHANGELOG.md#0.4.0"
+      ]
     },
     {
       "id": "named-sql",
       "name": "Named read-only SQL queries declared in the schema",
       "status": "released",
-      "guarantees": ["Values always bound; engine tables, sqlite_schema and personal fields refused; role and read rules checked."],
-      "limits": ["One-off read of one workspace; not live; not a warehouse."],
-      "evidence": ["API.md", "LIMITATIONS.md"]
+      "guarantees": [
+        "Values always bound; engine tables, sqlite_schema and personal fields refused; role and read rules checked."
+      ],
+      "limits": [
+        "One-off read of one workspace; not live; not a warehouse."
+      ],
+      "evidence": [
+        "API.md",
+        "LIMITATIONS.md"
+      ]
     },
     {
       "id": "aggregates",
@@ -127,44 +176,68 @@
       "status": "released",
       "maturity": "experimental (API.md)",
       "guarantees": [],
-      "limits": ["Refused on personal fields."],
-      "evidence": ["API.md"]
+      "limits": [
+        "Refused on personal fields."
+      ],
+      "evidence": [
+        "API.md"
+      ]
     },
     {
       "id": "vector-search",
       "name": "Vectorize-backed vector, text and hybrid search on one model",
       "status": "released",
-      "guarantees": ["Index intents committed with the write; reranker optional."],
-      "limits": ["One indexed model per deployment; Vectorize visibility lags acceptance; no live search subscriptions; one provider."],
-      "evidence": ["API.md#vector-search"]
+      "guarantees": [
+        "Index intents committed with the write; reranker optional."
+      ],
+      "limits": [
+        "One indexed model per deployment; Vectorize visibility lags acceptance; no live search subscriptions; one provider."
+      ],
+      "evidence": [
+        "API.md#vector-search"
+      ]
     },
     {
       "id": "cross-workspace-reads",
       "name": "$across: reads merged on the client from several workspaces",
       "status": "released",
-      "guarantees": ["Each workspace is asked with its own claim; a failed workspace yields AcrossError with the other rows in partial."],
+      "guarantees": [
+        "Each workspace is asked with its own claim; a failed workspace yields AcrossError with the other rows in partial."
+      ],
       "limits": [
-        "Measured on Cloudflare (ADR 0001, PR #109): about 0.23-0.33 s at 100 workspaces and 3.9 s at 1,000 with concurrency 64.",
+        "Measured on Cloudflare (ADR 0001): about 0.23-0.33 s at 100 workspaces and 3.9 s at 1,000 with concurrency 64.",
         "Beyond about 100 workspaces for interactive use, use a read model."
       ],
-      "evidence": ["src/model/across.ts", "docs/adr/0001-cross-workspace-reads.md (PR #109)"]
+      "evidence": [
+        "src/model/across.ts",
+        "docs/adr/0001-cross-workspace-reads.md"
+      ]
     },
     {
       "id": "across-concurrency",
       "name": "$across concurrency bound (default 64) and later-getToken fix",
-      "status": "pending",
-      "pr": "https://github.com/tapedb/tapedb/pull/114",
+      "status": "released",
       "guarantees": [],
-      "limits": ["Stacked on PR #111."],
-      "evidence": ["PR #111", "PR #114"]
+      "limits": [],
+      "evidence": [
+        "CHANGELOG.md#0.4.0"
+      ]
     },
     {
       "id": "audit-erasure",
       "name": "Opt-in writer audit, per-row history, personal-field erasure, retention",
       "status": "released",
-      "guarantees": ["Deleted values leave every TapeDB copy within the retention (default 30 days).", "Erasing a subject key makes its ciphertext unreadable everywhere."],
-      "limits": ["Cloudflare's own 30-day Durable Object point-in-time recovery is outside TapeDB's control (PRIVACY.md)."],
-      "evidence": ["PRIVACY.md", "API.md"]
+      "guarantees": [
+        "Deleted values leave every TapeDB copy within the retention (default 30 days).",
+        "Erasing a subject key makes its ciphertext unreadable everywhere."
+      ],
+      "limits": [
+        "Cloudflare's own 30-day Durable Object point-in-time recovery is outside TapeDB's control (PRIVACY.md)."
+      ],
+      "evidence": [
+        "PRIVACY.md",
+        "API.md"
+      ]
     },
     {
       "id": "built-in-auth",
@@ -176,15 +249,17 @@
       "limits": [
         "No multi-call transactions (transaction: false).",
         "All auth tables in one AuthRoom: one writer for every sign-in.",
-        "LIMITATIONS.md at 7504b12 still says TapeDB 'does not manage users, sessions, passwords or memberships', which built-in auth contradicts. Reported to the TapeDB owner."
+        "LIMITATIONS.md in 0.4.1 still says TapeDB 'does not manage users, sessions, passwords or memberships', which built-in auth contradicts. Reported to the TapeDB owner."
       ],
-      "evidence": ["API.md#built-in-authentication", "src/auth/"]
+      "evidence": [
+        "API.md#built-in-authentication",
+        "src/auth/"
+      ]
     },
     {
       "id": "auth-compatibility",
       "name": "Better Auth plugin compatibility matrix",
       "status": "documentation",
-      "pr": "https://github.com/tapedb/tapedb/pull/113",
       "guarantees": [
         "Verified in workerd: session revocation, ban, magic link, TOTP, backup codes, organizations, JWT/JWKS, OAuth 2.1 provider (registration, PKCE, refresh rotation with reuse detection, revocation), device authorization; single-use steps succeed once under concurrent requests."
       ],
@@ -192,25 +267,37 @@
         "Flows in runWithTransaction can leave partial writes (organization member changes, OAuth client registration, passkey registration with a session).",
         "Passkeys partly verified; account linking not verified; SAML/LDAP out of scope."
       ],
-      "evidence": ["AUTH-COMPATIBILITY.md (PR #113)"]
+      "evidence": [
+        "AUTH-COMPATIBILITY.md"
+      ]
     },
     {
       "id": "metrics-health",
       "name": "GET /metrics with a health verdict",
-      "status": "pending",
-      "pr": "https://github.com/tapedb/tapedb/pull/107",
-      "guarantees": ["Counters and bucket histograms in memory; gauges from SQLite; health ok/degraded/failing with reason codes."],
-      "limits": ["Counters reset with the object; the flush counter is recorded after the gauge moves within one pass."],
-      "evidence": ["PR #106", "PR #107"]
+      "status": "released",
+      "guarantees": [
+        "Counters and bucket histograms in memory; gauges from SQLite; health ok/degraded/failing with reason codes."
+      ],
+      "limits": [
+        "Counters reset with the object; the flush counter is recorded after the gauge moves within one pass."
+      ],
+      "evidence": [
+        "CHANGELOG.md#0.4.0"
+      ]
     },
     {
       "id": "query-profile",
       "name": "GET /queries: costliest read statements with SQLite plans",
-      "status": "pending",
-      "pr": "https://github.com/tapedb/tapedb/pull/112",
-      "guarantees": ["rowsRead from the Durable Object cursor; full scans and index candidates named; no values recorded."],
-      "limits": ["Wall time reads 0 ms on Cloudflare for synchronous SQL."],
-      "evidence": ["PR #112"]
+      "status": "released",
+      "guarantees": [
+        "rowsRead from the Durable Object cursor; full scans and index candidates named; no values recorded."
+      ],
+      "limits": [
+        "Wall time reads 0 ms on Cloudflare for synchronous SQL."
+      ],
+      "evidence": [
+        "CHANGELOG.md#0.4.0"
+      ]
     },
     {
       "id": "write-budgets",
@@ -219,14 +306,31 @@
       "maturity": "experimental (API.md)",
       "guarantees": [],
       "limits": [],
-      "evidence": ["API.md#write-budgets"]
+      "evidence": [
+        "API.md#write-budgets"
+      ]
     }
   ],
   "notProvided": [
-    { "what": "Generic job queue, timers, cron", "use": "Cloudflare Queues, Workflows, Cron Triggers" },
-    { "what": "Telemetry ingestion and analytical warehouse", "use": "A separate data plane (R2 plus a query engine)" },
-    { "what": "KV adapter, Redis compatibility", "use": "Workers KV directly where justified" },
-    { "what": "SAML, LDAP, enterprise federation", "use": "Application or external identity provider" },
-    { "what": "Cross-workspace transactions, multi-writer", "use": "Design tenancy so a transaction stays in one workspace" }
+    {
+      "what": "Generic job queue, timers, cron",
+      "use": "Cloudflare Queues, Workflows, Cron Triggers"
+    },
+    {
+      "what": "Telemetry ingestion and analytical warehouse",
+      "use": "A separate data plane (R2 plus a query engine)"
+    },
+    {
+      "what": "KV adapter, Redis compatibility",
+      "use": "Workers KV directly where justified"
+    },
+    {
+      "what": "SAML, LDAP, enterprise federation",
+      "use": "Application or external identity provider"
+    },
+    {
+      "what": "Cross-workspace transactions, multi-writer",
+      "use": "Design tenancy so a transaction stays in one workspace"
+    }
   ]
 }
