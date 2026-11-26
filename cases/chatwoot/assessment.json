@@ -160,7 +160,7 @@
     {
       "id": "fx.inbox",
       "kind": "test",
-      "ref": "examples/inbox (test/inbox.test.mjs), @tapedb/tapedb 0.4.1 under tapedb dev",
+      "ref": "examples/inbox (test/inbox.test.mjs), @tapedb/tapedb 0.4.2 under tapedb dev",
       "checkedAt": "2026-11-26",
       "note": "4 tests in workerd: conversation with unread counts, a live count across two clients, 30 concurrent sends from three clients, and a wrong-workspace claim refused (403 wrong_workspace)."
     }

@@ -2,10 +2,10 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "@tapedb/tapedb": "0.4.1"
+    "@tapedb/tapedb": "0.4.2"
   },
   "devDependencies": {
-    "@tapedb/cli": "0.4.1",
+    "@tapedb/cli": "0.4.2",
     "wrangler": "^4.163.0"
   },
   "scripts": {

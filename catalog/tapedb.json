@@ -3,13 +3,13 @@
   "checkedAt": "2026-11-26",
   "source": "https://github.com/tapedb/tapedb",
   "release": {
-    "version": "0.4.1",
-    "commit": "255c09b",
-    "npm": "@tapedb/tapedb@0.4.1 (latest)",
-    "note": "Checked 2026-11-26 by a fresh install from the npm registry. 0.4.0 is deprecated: it was packed from a stale build."
+    "version": "0.4.2",
+    "commit": "5d573b0",
+    "npm": "@tapedb/tapedb@0.4.2 (latest), all six packages",
+    "note": "Checked 2026-11-26 by fresh installs from the npm registry. 0.4.2 changes only init (it installs @tapedb/cli); the engine is 0.4.1's. 0.4.0 is deprecated: it was packed from a stale build."
   },
   "statusMeaning": {
-    "released": "In @tapedb/tapedb 0.4.1 on npm, documented in API.md.",
+    "released": "In @tapedb/tapedb 0.4.2 on npm, documented in API.md.",
     "documentation": "A measured fact or a decision record, not an API."
   },
   "entries": [
@@ -249,7 +249,7 @@
       "limits": [
         "No multi-call transactions (transaction: false).",
         "All auth tables in one AuthRoom: one writer for every sign-in.",
-        "LIMITATIONS.md in 0.4.1 still says TapeDB 'does not manage users, sessions, passwords or memberships', which built-in auth contradicts. Reported to the TapeDB owner."
+        "LIMITATIONS.md in 0.4.2 still says TapeDB 'does not manage users, sessions, passwords or memberships', which built-in auth contradicts. Reported to the TapeDB owner."
       ],
       "evidence": [
         "API.md#built-in-authentication",
@@ -349,7 +349,7 @@
         "https://github.com/tapedb/tapedb/pull/118",
         "https://github.com/tapedb/tapedb/releases/tag/v0.4.2"
       ],
-      "text": "A project made by @tapedb/cli@0.4.1 init (or earlier) has no tapedb-cli bin, so the printed `npx tapedb-cli ...` runs the deprecated unscoped tapedb-cli@0.1.30 from the registry. Fixed in tapedb 0.4.2 (PR #118, released on GitHub 2026-11-26; npm publish pending). The fixtures here pin @tapedb/cli explicitly."
+      "text": "Projects made by init before 0.4.2 have no tapedb-cli bin, so the printed `npx tapedb-cli ...` runs the deprecated unscoped tapedb-cli@0.1.30 from the registry. Fixed in 0.4.2: a fresh `npx @tapedb/cli@0.4.2 init` pins @tapedb/cli 0.4.2 and `npx tapedb-cli` runs it (checked against the registry 2026-11-26). Older projects: npm install -D @tapedb/cli@<their tapedb version>."
     }
   ]
 }

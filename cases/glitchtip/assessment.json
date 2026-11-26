@@ -153,7 +153,7 @@
     {
       "id": "fx.ingest",
       "kind": "test",
-      "ref": "examples/ingest (worker.ts, test/ingest.test.mjs), @tapedb/tapedb 0.4.1 under tapedb dev with local Queues",
+      "ref": "examples/ingest (worker.ts, test/ingest.test.mjs), @tapedb/tapedb 0.4.2 under tapedb dev with local Queues",
       "checkedAt": "2026-11-26",
       "note": "5 tests in workerd: unknown key refused, grouping and counts, organizations isolated, a poison event retried and dead-lettered without holding back its sibling, and a redelivered message not counted twice (negative control: random tally ids count 2)."
     }

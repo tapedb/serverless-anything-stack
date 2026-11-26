@@ -1,7 +1,7 @@
 # TapeDB: when it fits and when it does not
 
 Facts, limits and sources are in `catalog/tapedb.json` (checked against
-`@tapedb/tapedb@0.4.1` on npm, 2026-11-26). This page is the judgement.
+`@tapedb/tapedb@0.4.2` on npm, 2026-11-26). This page is the judgement.
 
 ## The shape
 
@@ -49,7 +49,7 @@ transactions across rows that belong together).
 - **Protocols:** SAML, LDAP, OIDC conformance beyond Better Auth's plugins,
   Sentry envelopes, provider channels. Application code.
 
-## Known gaps to design around (0.4.1)
+## Known gaps to design around (0.4.2)
 
 - The admin HTTP API applies wire ops as given; it does not fill schema
   defaults. Spell out every defaulted field in `/v1/transact` inserts.

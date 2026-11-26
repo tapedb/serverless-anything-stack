@@ -17,7 +17,7 @@ in it that it is not for.
 | --- | --- |
 | `SKILL.md` | the skill: procedure, rules, output |
 | `references/` | methodology and status rules, TapeDB and Cloudflare guidance, security and licensing, costing |
-| `catalog/` | TapeDB (0.4.1 on npm) and Cloudflare capabilities: guarantees, limits, sources, check dates |
+| `catalog/` | TapeDB (0.4.2 on npm) and Cloudflare capabilities: guarantees, limits, sources, check dates |
 | `schemas/` | assessment, capability and decision JSON schemas |
 | `scripts/validate.ts` | schema plus rule validation, including the architecture rules |
 | `scripts/report.ts` | renders each case's `report.md` from its JSON |

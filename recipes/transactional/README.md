@@ -20,7 +20,7 @@ engine and cannot race.
   provider event id), so a redelivery rewrites the same row.
 - Keep a transaction inside one workspace. If a design needs atomicity across
   tenants, the boundary is wrong, or it needs a saga with reconciliation.
-- Spell out defaulted fields in admin-API inserts (0.4.1 does not fill them).
+- Spell out defaulted fields in admin-API inserts (0.4.2 does not fill them).
 
 **Tested by:** `examples/inbox` (conversations, messages, unread, 30
 concurrent sends, isolation) and `examples/ingest` (idempotent upserts from a
