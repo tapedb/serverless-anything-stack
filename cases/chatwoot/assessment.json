@@ -436,7 +436,8 @@
       ],
       "owner": "application",
       "acceptanceTests": [
-        "t.live-order"
+        "t.live-order",
+        "t.fixture-inbox"
       ],
       "decision": "reuse"
     },
@@ -516,15 +517,14 @@
       "upstreamEvidence": [
         "cw.webhook-job"
       ],
-      "candidate": "TapeDB webhooks (transactional capture, signed, ordered per endpoint, at-least-once)",
+      "candidate": "TapeDB webhooks (transactional capture, signed, ordered per endpoint, at-least-once); $webhooks() and $webhookRetry() to inspect and move a stuck endpoint",
       "candidateEvidence": [
         "td.webhooks",
         "td.e2e"
       ],
       "status": "partial",
       "gaps": [
-        "TapeDB's payload is a row change; Chatwoot's webhook payloads are event-shaped (message_created, conversation_status_changed) and need a mapping.",
-        "Delivery inspection and retry shipped in 0.4.1 ($webhooks, $webhookRetry)."
+        "TapeDB's payload is a row change; Chatwoot's webhook payloads are event-shaped (message_created, conversation_status_changed) and need a mapping."
       ],
       "owner": "application",
       "acceptanceTests": [
