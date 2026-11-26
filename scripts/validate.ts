@@ -188,6 +188,50 @@ export function checkRules(assessment: Assessment): Problem[] {
   return problems;
 }
 
+/**
+ * Architecture rules from the handoff's skill-evaluation gate. Each names a
+ * mistake that duplicates a primitive the stack already has, or puts a workload
+ * where it does not fit. A design may break one on purpose by recording it in
+ * architecture.exceptions with its reason and evidence.
+ */
+export function checkArchitecture(assessment: Assessment): Problem[] {
+  const problems: Problem[] = [];
+  const architecture = assessment.architecture as Assessment["architecture"] & {
+    exceptions?: Array<{ rule: string; reason: string; evidence: string[] }>;
+  };
+  const components = architecture.components as Array<{ name: string; primitive: string; responsibility: string; optional?: boolean }>;
+  const waived = new Set((architecture.exceptions ?? []).map((e) => e.rule));
+  const evidence = new Set(assessment.evidence.map((e) => e.id));
+  for (const e of architecture.exceptions ?? []) {
+    for (const id of e.evidence) if (!evidence.has(id)) problems.push({ path: `$.architecture.exceptions.${e.rule}`, message: `unknown evidence ${id}` });
+  }
+  const uses = (pattern: RegExp) => components.filter((c) => pattern.test(c.primitive));
+  const reused = assessment.capabilities.filter((c) => c.decision === "reuse" && /tapedb/i.test(c.candidate));
+
+  const tapedbLive = uses(/tapedb[^,;]*(live|presence|broadcast)/i).length > 0 || reused.some((c) => c.workload === "realtime");
+  const otherSockets = uses(/websocket|socket\.io|actioncable|pusher|ably/i).filter((c) => !/tapedb/i.test(c.primitive));
+  if (tapedbLive && otherSockets.length > 0 && !waived.has("second-socket")) {
+    problems.push({ path: "$.architecture", message: `second-socket: ${otherSockets.map((c) => c.name).join(", ")} adds a socket service next to TapeDB live queries` });
+  }
+
+  const tapedbWebhooks = uses(/tapedb[^,;]*webhook/i).length > 0 || reused.some((c) => /tapedb webhooks/i.test(c.candidate));
+  const otherOutbox = uses(/outbox/i).filter((c) => !/tapedb|client outbox/i.test(c.primitive));
+  if (tapedbWebhooks && otherOutbox.length > 0 && !waived.has("second-outbox")) {
+    problems.push({ path: "$.architecture", message: `second-outbox: ${otherOutbox.map((c) => c.name).join(", ")} adds an outbox next to TapeDB webhooks` });
+  }
+
+  const kv = uses(/\bkv\b|workers kv/i).filter((c) => !c.optional);
+  if (kv.length > 0 && !waived.has("mandatory-kv")) {
+    problems.push({ path: "$.architecture", message: `mandatory-kv: ${kv.map((c) => c.name).join(", ")} is KV without optional: true; justify it in architecture.exceptions or make it optional` });
+  }
+
+  const warehouse = assessment.capabilities.filter((c) => c.workload === "ingestion" && c.decision === "reuse" && /tapedb/i.test(c.candidate));
+  if (warehouse.length > 0 && !waived.has("telemetry-in-tapedb")) {
+    problems.push({ path: "$.capabilities", message: `telemetry-in-tapedb: ${warehouse.map((c) => c.id).join(", ")} puts an ingestion workload in TapeDB, which is not a telemetry store` });
+  }
+  return problems;
+}
+
 export function validateFile(file: string): Problem[] {
   let parsed: Json;
   try {
@@ -197,7 +241,7 @@ export function validateFile(file: string): Problem[] {
   }
   const problems = checkSchema(parsed, SCHEMAS["assessment.schema.json"]);
   if (problems.length > 0) return problems;
-  return checkRules(parsed as unknown as Assessment);
+  return [...checkRules(parsed as unknown as Assessment), ...checkArchitecture(parsed as unknown as Assessment)];
 }
 
 if (import.meta.main) {
