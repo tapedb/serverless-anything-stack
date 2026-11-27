@@ -13,6 +13,15 @@
  * change to a document goes through `rev`: a write must carry row.rev + 1, so a
  * publish based on an older revision is refused (optimistic locking).
  *
+ * Every publish and unpublish also writes a <type>Revision row in the same
+ * transaction: an immutable snapshot of the published values, its rev and the
+ * writer. A <type>Version row holds a document's values inside a release
+ * (cmsRelease); publishing a release applies all its versions in one
+ * transaction.
+ *
+ * Roles: users read published documents; members (contributors) also read
+ * and write drafts and versions; editors publish; admins delete documents.
+ *
  * Rich-text fields carry a field lock on the draft (`<field>LockedBy`,
  * `<field>LockedUntil`): a write to the field is refused unless the writer
  * holds an unexpired lock, and a lock is taken only when it is free, expired
@@ -20,6 +29,9 @@
  */
 import { check, filter, model, role, t } from "@tapedb/tapedb/schema";
 
+// Role levels (WORKSPACE_ROLE_LEVELS): readers are users, contributors are
+// members (they write drafts and release versions), editors publish, admins delete.
+const MEMBER = 2;
 const EDITOR = 3;
 
 type Base = { required?: boolean };
@@ -79,7 +91,7 @@ export function validate(fields: Record<string, FieldDef>, values: Record<string
   return problems;
 }
 
-function columns(fields: Record<string, FieldDef>, draft: boolean) {
+function columns(fields: Record<string, FieldDef>, draft: boolean, locks = draft) {
   const out: Record<string, any> = {};
   for (const [name, def] of Object.entries(fields)) {
     switch (def.kind) {
@@ -95,7 +107,7 @@ function columns(fields: Record<string, FieldDef>, draft: boolean) {
         break;
       case "richText":
         out[name] = t.json().optional();
-        if (draft && def.lock !== false) {
+        if (locks && def.lock !== false) {
           out[`${name}LockedBy`] = t.string().optional();
           out[`${name}LockedUntil`] = t.number().optional();
         }
@@ -116,13 +128,13 @@ const merged = (row: Record<string, unknown> | undefined, data: Record<string, u
 
 function documentRules(fields: Record<string, FieldDef>) {
   return {
-    // Readers see published documents only; editors see every document.
-    read: filter(({ auth }) => (auth.role >= EDITOR ? {} : { publishedAt: { isNull: false } })),
+    // Readers see published documents only; contributors and up see every document.
+    read: filter(({ auth }) => (auth.role >= MEMBER ? {} : { publishedAt: { isNull: false } })),
     create: check(({ auth, data }) => {
-      if (auth.role < EDITOR) return false;
       if ((data?.rev ?? 0) !== 0) return false;
-      // A document created published must be complete.
-      return data?.publishedAt == null || validate(fields, data ?? {}, true).length === 0;
+      // A contributor creates unpublished documents; creating one published takes an editor and a complete document.
+      if (data?.publishedAt == null) return auth.role >= MEMBER;
+      return auth.role >= EDITOR && validate(fields, data ?? {}, true).length === 0;
     }),
     update: check(({ auth, row, data }) => {
       if (auth.role < EDITOR || !row) return false;
@@ -138,10 +150,10 @@ function documentRules(fields: Record<string, FieldDef>) {
 function draftRules(fields: Record<string, FieldDef>) {
   const locked = Object.entries(fields).filter(([, d]) => d.kind === "richText" && d.lock !== false).map(([n]) => n);
   return {
-    read: role("editor"),
-    create: check(({ auth, data }) => auth.role >= EDITOR && validate(fields, data ?? {}, false).length === 0),
+    read: role("member"),
+    create: check(({ auth, data }) => auth.role >= MEMBER && validate(fields, data ?? {}, false).length === 0),
     update: check(({ auth, row, data, changed }) => {
-      if (auth.role < EDITOR || !row) return false;
+      if (auth.role < MEMBER || !row) return false;
       const now = Date.now();
       for (const name of locked) {
         const by = `${name}LockedBy`;
@@ -161,9 +173,38 @@ function draftRules(fields: Record<string, FieldDef>) {
       }
       return validate(fields, merged(row, data), false).length === 0;
     }),
-    delete: role("editor"),
+    delete: role("member"),
   };
 }
+
+const revisionRules = {
+  read: role("member"),
+  // Written by editors with each publish, in the writer's own name, and never changed.
+  create: check(({ auth, data }) => auth.role >= EDITOR && data?.by === auth.sub),
+  update: check(() => false),
+  delete: role("admin"),
+};
+
+function versionRules(fields: Record<string, FieldDef>) {
+  return {
+    read: role("member"),
+    create: check(({ auth, data }) => auth.role >= MEMBER && validate(fields, data ?? {}, false).length === 0),
+    update: check(({ auth, row, data }) => auth.role >= MEMBER && !!row && validate(fields, merged(row, data), false).length === 0),
+    delete: role("member"),
+  };
+}
+
+const releaseRules = {
+  read: role("member"),
+  create: check(({ auth, data }) => auth.role >= MEMBER && (data?.state ?? "open") === "open"),
+  // Only an open release changes, and only an editor publishes it, once.
+  update: check(({ auth, row, data, changed }) => {
+    if (!row || row.state !== "open") return false;
+    if (changed?.includes("state")) return auth.role >= EDITOR && data?.state === "published" && typeof data?.publishedAt === "number";
+    return auth.role >= MEMBER && !changed?.includes("publishedAt");
+  }),
+  delete: check(({ auth, row }) => auth.role >= MEMBER && row?.state === "open"),
+};
 
 /** Compiles content types into schema models. */
 export function compile(types: ContentTypes) {
@@ -179,6 +220,23 @@ export function compile(types: ContentTypes) {
       // The draft's id is its document's id, so a document has at most one draft.
       document: t.belongsTo(type, { onDelete: "cascade" }),
     }).access(draftRules(fields));
+    models[`${type}Revision`] = model({
+      document: t.belongsTo(type, { onDelete: "cascade" }),
+      rev: t.number().index(),
+      values: t.json(),
+      publishedAt: t.number().optional(),
+      by: t.string(),
+    }).access(revisionRules);
+    models[`${type}Version`] = model({
+      ...columns(fields, true, false),
+      release: t.belongsTo("cmsRelease", { onDelete: "cascade" }),
+      document: t.belongsTo(type, { onDelete: "cascade" }),
+    }).access(versionRules(fields));
   }
+  models.cmsRelease = model({
+    name: t.string(),
+    state: t.enum(["open", "published"]).default("open").index(),
+    publishedAt: t.number().optional(),
+  }).access(releaseRules);
   return models;
 }

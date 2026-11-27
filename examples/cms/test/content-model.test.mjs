@@ -28,7 +28,8 @@ test("each content type compiles to a document model and a draft model", async (
   const res = await fetch(`${URL}/engine/workspaces/${ws}/schema`, { headers: { authorization: `Bearer ${token}` } });
   const { data } = await res.json();
   const names = data.namespaces.map((n) => n.apiName).sort();
-  assert.deepEqual(names, ["author", "authorDraft", "note", "noteDraft", "post", "postDraft"]);
+  const perType = (t) => [t, `${t}Draft`, `${t}Revision`, `${t}Version`];
+  assert.deepEqual(names, [...perType("author"), "cmsRelease", ...perType("note"), ...perType("post")].sort());
   const post = data.namespaces.find((n) => n.apiName === "post");
   assert.deepEqual(Object.keys(post.attributes).sort(), ["authorId", "body", "publishedAt", "relatedRef", "rev", "slug", "summary", "title"].sort());
   assert.equal(post.attributes.slug.unique, true);

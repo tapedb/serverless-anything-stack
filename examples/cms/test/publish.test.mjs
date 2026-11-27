@@ -12,7 +12,7 @@ startDev();
 async function setup() {
   const ws = dataset();
   const ed = person(ws, "ed", "editor");
-  const reader = person(ws, "rita", "member");
+  const reader = person(ws, "rita", "user");
   const authorId = await createDocument(ed, "author", { name: "Ada" });
   await publish(ed, contentTypes, "author", await ed.authorDraft.findUnique({ where: { id: authorId } }), 0);
   const postId = await createDocument(ed, "post", { title: "Launch", slug: "launch", body: doc("v1"), authorId });
@@ -24,7 +24,7 @@ const draftOf = (db, id) => db.postDraft.findUnique({ where: { id } });
 test("readers see nothing until publish, then the whole document; the draft is gone", async () => {
   const { ed, reader, postId } = await setup();
   assert.deepEqual(await reader.post.findMany({}), [], "an unpublished document is invisible to readers");
-  assert.equal((await refused(reader.postDraft.findMany({}))).code, "permission_denied", "drafts are for editors");
+  assert.equal((await refused(reader.postDraft.findMany({}))).code, "permission_denied", "drafts are for contributors and up");
 
   await publish(ed, contentTypes, "post", await draftOf(ed, postId), 0);
   const [post] = await reader.post.findMany({});
@@ -121,11 +121,11 @@ test("an invalid publish rolls back whole: the draft stays and the document does
   assert.deepEqual(await reader.post.findMany({}), []);
 });
 
-test("unpublish takes the document off the read path and keeps it for editors", async () => {
+test("unpublish takes the document off the read path and keeps it for contributors", async () => {
   const { ed, reader, postId } = await setup();
   await publish(ed, contentTypes, "post", await draftOf(ed, postId), 0);
   assert.equal((await reader.post.findMany({})).length, 1);
-  await unpublish(ed, "post", postId, 1);
+  await unpublish(ed, contentTypes, "post", postId, 1);
   assert.deepEqual(await reader.post.findMany({}), []);
   const post = await ed.post.findUnique({ where: { id: postId } });
   assert.equal(post.rev, 2);

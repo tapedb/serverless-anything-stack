@@ -281,7 +281,7 @@
       "kind": "test",
       "ref": "examples/cms",
       "checkedAt": "2026-11-27",
-      "note": "Fixture on published TapeDB 0.4.2 under tapedb dev: content types compiled to document and draft models (cms/content.ts), operations (cms/ops.ts), 16 tests; negative controls run for the revision check, publish validation, field locks and the lock term."
+      "note": "Fixture on published TapeDB 0.4.2 under tapedb dev: content types compiled to document, draft, revision and release-version models plus a release model (cms/content.ts), operations (cms/ops.ts), 29 tests; negative controls run for the revision check, publish validation, field locks, the lock term, role levels, revision immutability and authorship, and the release state."
     },
     {
       "id": "cf.images",
@@ -768,7 +768,7 @@
       ],
       "status": "partial",
       "gaps": [
-        "Publish, unpublish and the refusal of a stale or invalid publish are tested; discard changes and restore are not (restore needs t.revisions).",
+        "Publish, unpublish, restore of an earlier revision and the refusal of a stale or invalid publish are tested; discarding a draft (deleting the draft row) is not.",
         "Sanity's ID prefixes (drafts., versions.) become separate models; a query names the model, not a perspective."
       ],
       "owner": "application",
@@ -786,15 +786,17 @@
         "sl.drafts-versions",
         "sl.limits"
       ],
-      "candidate": "Release and version models; publishing a release is one transaction in the workspace",
+      "candidate": "A cmsRelease model and a <type>Version model per type; publishing a release applies every version, writes their revisions, deletes the versions and marks the release published in one transaction",
       "candidateEvidence": [
         "td.api",
-        "td.catalog"
+        "td.catalog",
+        "fx.cms"
       ],
-      "status": "unverified",
+      "status": "partial",
       "gaps": [
-        "Not built. A release that spans datasets cannot be atomic: one workspace per transaction.",
-        "Sanity caps releases at 1,000 versions and 100 MB; the bound here is the workspace's write budget and transaction size, not measured."
+        "A release that spans datasets cannot be atomic: one workspace per transaction.",
+        "Measured locally only: 1,000 versions (3,001 writes) published whole in about 0.5 s under tapedb dev; not measured deployed, and no upper bound found (Sanity caps a release at 1,000 versions and 100 MB).",
+        "Scheduling a release (t.schedule), previewing a release as a perspective, and copying versions between releases are not built."
       ],
       "owner": "application",
       "acceptanceTests": [
@@ -834,15 +836,16 @@
         "sl.history",
         "sl.transactions"
       ],
-      "candidate": "Revision rows written in the same transaction as each save or publish; TapeDB audit for the writer",
+      "candidate": "An immutable <type>Revision row written in the same transaction as each publish and unpublish (values, rev, writer checked against the claim); restore copies a revision into the draft",
       "candidateEvidence": [
-        "td.catalog"
+        "td.catalog",
+        "fx.cms"
       ],
-      "status": "unverified",
+      "status": "partial",
       "gaps": [
-        "TapeDB's log and $history are bounded by retention (default 30 days) and are not content history; revisions must be the CMS's own rows.",
-        "Sanity truncates history by plan (3/90/365 days); here retention is the owner's choice, and revisions holding personal data need personal fields to stay erasable.",
-        "Revision granularity: saving a row per keystroke is too much; revisions per save or per idle period."
+        "Revisions are per publish, not per edit: Sanity also keeps every draft change; edit history of drafts is not recorded.",
+        "A check() rule cannot see other rows, so nothing in the engine forces a publish to carry its revision row: the CMS's publish route must (ops.ts does).",
+        "Sanity truncates history by plan (3/90/365 days); here revisions stay until an admin deletes them, and revisions holding personal data need personal fields to stay erasable."
       ],
       "owner": "application",
       "acceptanceTests": [
@@ -998,19 +1001,21 @@
       "upstreamEvidence": [
         "sn.grants"
       ],
-      "candidate": "TapeDB workspace membership, roles and row rules; publish as a rule on the publish route",
+      "candidate": "TapeDB role levels in compiled rules: users read published documents; members write drafts and release versions; editors publish; admins delete",
       "candidateEvidence": [
-        "td.catalog"
+        "td.catalog",
+        "fx.cms"
       ],
-      "status": "unverified",
+      "status": "partial",
       "gaps": [
-        "Sanity's role and grant model (including custom roles and document-level filters) was not mapped in detail."
+        "Four fixed levels; Sanity's custom roles and document-level grant filters (per type or per field) are not mapped.",
+        "Under tapedb dev the role comes from the development claim; a deployment needs an identity adapter or built-in auth to assign it."
       ],
       "owner": "application",
       "acceptanceTests": [
         "t.roles"
       ],
-      "decision": "reuse"
+      "decision": "extend"
     },
     {
       "id": "sign-in",
@@ -1456,9 +1461,14 @@
     },
     {
       "id": "t.fixture-release",
-      "description": "A release of 1,000 versions publishes whole or not at all",
+      "description": "A release publishes new and existing documents across types at once (a live reader never sees half); one document changed after the release was read, or one invalid version, refuses the whole release; of two concurrent publishes one lands and the release cannot be reopened; 1,000 versions publish whole (about 0.5 s locally)",
       "runtime": "workerd-local",
-      "result": "not-run"
+      "result": "pass",
+      "command": "cd examples/cms && npm test",
+      "ranAt": "2026-11-27",
+      "evidence": [
+        "fx.cms"
+      ]
     },
     {
       "id": "t.concurrent-edit",
@@ -1479,9 +1489,14 @@
     },
     {
       "id": "t.revisions",
-      "description": "A revision row per save and publish; restore an earlier revision",
+      "description": "Each publish and unpublish leaves a revision with values, rev and writer; a refused publish leaves none; revisions cannot be edited or written in another's name; restoring an earlier revision and publishing it makes a new revision",
       "runtime": "workerd-local",
-      "result": "not-run"
+      "result": "pass",
+      "command": "cd examples/cms && npm test",
+      "ranAt": "2026-11-27",
+      "evidence": [
+        "fx.cms"
+      ]
     },
     {
       "id": "t.schedule",
@@ -1509,9 +1524,14 @@
     },
     {
       "id": "t.roles",
-      "description": "Editor can edit, not publish; viewer reads drafts only where allowed",
+      "description": "A reader sees published documents only and cannot write; a contributor writes drafts but cannot publish, also not straight at the model; an editor publishes but cannot delete; an admin deletes, cascading to revisions; a contributor cannot write revisions or publish a release",
       "runtime": "workerd-local",
-      "result": "not-run"
+      "result": "pass",
+      "command": "cd examples/cms && npm test",
+      "ranAt": "2026-11-27",
+      "evidence": [
+        "fx.cms"
+      ]
     },
     {
       "id": "t.sanity-import",

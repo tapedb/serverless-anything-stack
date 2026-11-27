@@ -55,6 +55,7 @@ export async function claim(workspaceId, sub, role) {
 /** A client in `workspace` as `sub` with `role` (dev claims). */
 export function person(workspace, sub = "dev-user", role = "editor") {
   const db = createClient({ schema, url: URL, workspace, getToken: () => claim(workspace, sub, role) });
+  db.sub = sub;
   clients.push(db);
   return db;
 }
