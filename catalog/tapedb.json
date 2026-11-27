@@ -350,6 +350,15 @@
         "https://github.com/tapedb/tapedb/releases/tag/v0.4.2"
       ],
       "text": "Projects made by init before 0.4.2 have no tapedb-cli bin, so the printed `npx tapedb-cli ...` runs the deprecated unscoped tapedb-cli@0.1.30 from the registry. Fixed in 0.4.2: a fresh `npx @tapedb/cli@0.4.2 init` pins @tapedb/cli 0.4.2 and `npx tapedb-cli` runs it (checked against the registry 2026-11-26). Older projects: npm install -D @tapedb/cli@<their tapedb version>."
+    },
+    {
+      "id": "api-filter-operators",
+      "checkedAt": "2026-11-27",
+      "evidence": [
+        "examples/cms",
+        "API.md (Filters) and README.md (Reads) in @tapedb/tapedb 0.4.2"
+      ],
+      "text": "API.md's Filters table names the operators $ne, $in, $nin, $gt, $gte, $lt, $lte, $isNull, $like and $ilike, but the 0.4.2 client and filter() rules accept the README's names (not, in, notIn, gt, gte, lt, lte, isNull, like, ilike) and throw Unknown filter \"$gt\" on the $ forms. Inside a filter() read rule the throw denies every row with no error to the caller (the schema document shows where: []), so a rule written from API.md silently hides all rows."
     }
   ]
 }

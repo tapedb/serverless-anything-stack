@@ -6,7 +6,7 @@
     "validate": "bun scripts/validate.ts",
     "test": "bun test tests/",
     "check": "bun run test && bun run validate && bun scripts/report.ts --check",
-    "test:fixtures": "cd examples/inbox && npm ci --silent && npm test && cd ../ingest && npm ci --silent && npm test",
+    "test:fixtures": "cd examples/inbox && npm ci --silent && npm test && cd ../ingest && npm ci --silent && npm test && cd ../cms && npm ci --silent && npm test",
     "report": "bun scripts/report.ts"
   }
 }
