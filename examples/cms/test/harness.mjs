@@ -7,11 +7,18 @@ import { createClient, WORKSPACE_ROLE_LEVELS } from "@tapedb/tapedb";
 import schema from "../tapedb.schema.ts";
 
 export const PORT = Number(process.env.CMS_PORT ?? 8793);
-export const URL = `http://localhost:${PORT}`;
+/** A deployment's URL (scripts/deployed.mjs), or tapedb dev on PORT. */
+export const URL = process.env.CMS_URL ?? `http://localhost:${PORT}`;
+export const DEPLOYED = Boolean(process.env.CMS_URL);
+/** The webhook secret: wrangler.jsonc's local value, or the deployment's. */
+/** A deployment's development claim route answers only with this run's token. */
+const devTokenHeader = process.env.CMS_DEV_TOKEN ? { "x-tapedb-dev-token": process.env.CMS_DEV_TOKEN } : {};
+export const HOOK_SECRET = process.env.CMS_HOOK_SECRET ?? "local-hook-secret-not-for-deployment";
 
 export function startDev() {
   let dev;
   before(async () => {
+    if (DEPLOYED) return;
     dev = spawn("npx", ["--no-install", "tapedb-cli", "dev", "--port", String(PORT)], {
       cwd: new globalThis.URL("..", import.meta.url).pathname,
       stdio: ["ignore", "pipe", "pipe"],
@@ -25,7 +32,7 @@ export function startDev() {
       try {
         const r = await fetch(`${URL}/_tapedb/claim`, {
           method: "POST",
-          headers: { "content-type": "application/json" },
+          headers: { "content-type": "application/json", ...devTokenHeader },
           body: JSON.stringify({ workspaceId: randomUUID() }),
         });
         if (r.ok) break;
@@ -36,7 +43,7 @@ export function startDev() {
   });
   after(() => {
     for (const db of clients) db.$close();
-    try { process.kill(-dev.pid, "SIGTERM"); } catch {}
+    if (dev) try { process.kill(-dev.pid, "SIGTERM"); } catch {}
   });
 }
 
@@ -45,7 +52,7 @@ const clients = [];
 export async function claim(workspaceId, sub, role) {
   const r = await fetch(`${URL}/_tapedb/claim`, {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers: { "content-type": "application/json", ...devTokenHeader },
     body: JSON.stringify({ workspaceId, sub, role: WORKSPACE_ROLE_LEVELS[role.toUpperCase()] }),
   });
   if (!r.ok) throw new Error(`claim ${r.status}: ${await r.text()}`);

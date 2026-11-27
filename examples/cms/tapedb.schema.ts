@@ -1,4 +1,4 @@
-import { schema } from "@tapedb/tapedb/schema";
+import { fileCheck, schema } from "@tapedb/tapedb/schema";
 import { compile, field } from "./cms/content.ts";
 
 /**
@@ -25,4 +25,8 @@ export const contentTypes = {
   },
 };
 
-export default schema(compile(contentTypes));
+// Files under public/ are readable by anyone with a claim (the delivery path
+// reads them as a user); everything else needs a contributor.
+export default schema(compile(contentTypes), {
+  files: { read: fileCheck(({ auth, file }) => file.path.startsWith("public/") || auth.role >= 2) },
+});

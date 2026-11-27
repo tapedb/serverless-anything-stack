@@ -3,7 +3,7 @@
 // a release publishes once; 1,000 versions publish whole.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { dataset, doc, person, refused, startDev } from "./harness.mjs";
+import { DEPLOYED, dataset, doc, person, refused, startDev } from "./harness.mjs";
 import { contentTypes } from "../tapedb.schema.ts";
 import { addToRelease, createDocument, createRelease, ensureDraft, publish, publishRelease, revisions } from "../cms/ops.ts";
 
@@ -140,5 +140,5 @@ test("a release of 1,000 new documents publishes whole", { timeout: 300_000 }, a
   assert.equal(await reader.post.count({}), N);
   assert.equal(await ed.postVersion.count({ where: { releaseId } }), 0);
   assert.equal(await ed.postRevision.count({}), N);
-  console.log(`release of ${N} versions (${3 * N + 1} writes) published in ${ms} ms (tapedb dev, local)`);
+  console.log(`release of ${N} versions (${3 * N + 1} writes) published in ${ms} ms (${DEPLOYED ? "deployed" : "tapedb dev"})`);
 });

@@ -11,6 +11,7 @@
   "scripts": {
     "tapedb:dev": "tapedb dev",
     "test": "node --test --test-concurrency=1 test/*.test.mjs",
-    "pretest": "node ../dev-vars.mjs TAPEDB_CLAIM_SECRET TAPEDB_KEY_SECRET"
+    "pretest": "node ../dev-vars.mjs TAPEDB_CLAIM_SECRET TAPEDB_KEY_SECRET",
+    "test:deployed": "node scripts/deployed.mjs"
   }
 }

@@ -281,7 +281,28 @@
       "kind": "test",
       "ref": "examples/cms",
       "checkedAt": "2026-11-27",
-      "note": "Fixture on published TapeDB 0.4.2 under tapedb dev: content types compiled to document, draft, revision and release-version models plus a release model (cms/content.ts), operations (cms/ops.ts), 29 tests; negative controls run for the revision check, publish validation, field locks, the lock term, role levels, revision immutability and authorship, and the release state."
+      "note": "Fixture on published TapeDB 0.4.2 under tapedb dev: content types compiled to document, draft, revision and release-version models plus a release model (cms/content.ts), operations (cms/ops.ts), the delivery path (cms/delivery.ts), 34 tests; negative controls run for the revision check, publish validation, field locks, the lock term, role levels, revision immutability and authorship, and the release state."
+    },
+    {
+      "id": "fx.cms-deployed",
+      "kind": "run",
+      "ref": "examples/cms npm run test:deployed (Workers cms-fixture-0d28bf, cms-fixture-d39607, deleted after the runs)",
+      "checkedAt": "2026-11-27",
+      "note": "The whole suite against a deployed Worker on workers.dev, from Brandon's Mac: 33 of 34 passed; publish to delivery 3.5 s, republish 2.8 s, unpublish 10.9 s; autosave load p50 65 ms, p99 132 ms; the Images binding refused the account (legacy billing)."
+    },
+    {
+      "id": "cf.images-legacy",
+      "kind": "documentation",
+      "ref": "https://developers.cloudflare.com/images/",
+      "checkedAt": "2026-11-27",
+      "note": "Accounts on a legacy Image Resizing plan switch to an Images plan in the dashboard; until then the binding answers IMAGES_TRANSFORM_ERROR 9432 (seen in the deployed run)."
+    },
+    {
+      "id": "cf.cache-purge",
+      "kind": "documentation",
+      "ref": "https://developers.cloudflare.com/workers/reference/how-the-cache-works/",
+      "checkedAt": "2026-11-27",
+      "note": "cache.delete in a Worker purges only the data center it runs in."
     },
     {
       "id": "cf.images",
@@ -720,7 +741,7 @@
       "status": "partial",
       "gaps": [
         "Sanity listeners emit mutation events (patches, transaction ids); live queries emit result diffs, so a Studio built on them diffs documents, not mutations.",
-        "Each write re-runs the live queries on the models it touches; autosave on every keystroke must be batched (about 18 ms per write at 100 live queries)."
+        "Measured deployed: 20 editors autosaving once a second with 100 live queries, 600 saves in 30 s, none failed, p50 65 ms, p95 99 ms, p99 132 ms, max 226 ms from the client. Keystroke-rate saves were not measured; autosave stays batched."
       ],
       "owner": "application",
       "acceptanceTests": [
@@ -886,13 +907,18 @@
         "sl.images",
         "sn.manifest"
       ],
-      "candidate": "Cloudflare Images binding on R2 originals inside the delivery Worker, results stored with the Workers Cache API; a URL builder that applies crop and hotspot",
+      "candidate": "GET /img: the original read through TapeDB's file route as a reader (file rules: only public/ is served), transformed by the Images binding (fit cover, gravity at the focal point), cached with the Workers Cache API",
       "candidateEvidence": [
         "cf.images",
-        "cf.images-pricing"
+        "cf.images-pricing",
+        "fx.cms",
+        "fx.cms-deployed",
+        "cf.images-legacy"
       ],
       "status": "unverified",
       "gaps": [
+        "Not verified deployed: this account is on legacy Image Resizing billing, so the binding refused every transform (IMAGES_TRANSFORM_ERROR 9432). Switching the account to an Images plan is the owner's decision.",
+        "Locally (wrangler's offline binding) resize, formats, caching and the public/ rule pass; the offline binding ignores gravity, so focal-point crops are asserted only deployed.",
         "Parameter names differ from Sanity's image URLs; a compatibility layer for @sanity/image-url URLs is optional.",
         "Billed per unique transformation beyond 5,000 a month."
       ],
@@ -934,14 +960,18 @@
       "upstreamEvidence": [
         "sl.limits"
       ],
-      "candidate": "On publish, the delivery Worker writes published documents to R2 and serves them behind the Workers Cache API; TapeDB webhooks trigger the refresh",
+      "candidate": "Signed TapeDB webhooks to the CMS Worker's own /_cms/hook (global_fetch_strictly_public) write each published document to R2, ordered by rev with unpublish tombstones; GET /content serves it through the Workers Cache API (max-age 10 s)",
       "candidateEvidence": [
-        "td.catalog"
+        "td.catalog",
+        "fx.cms",
+        "fx.cms-deployed",
+        "cf.cache-purge"
       ],
-      "status": "unverified",
+      "status": "partial",
       "gaps": [
-        "Webhooks deliver after the log reaches R2 (up to the 30 s durability alarm delay plus the flush): publish-to-live latency is bounded by that, not measured.",
-        "At-least-once webhooks: the refresh must be idempotent (write by document id and published revision)."
+        "Measured deployed: a publish reached the delivery URL in 3.5 s and a republish in 2.8 s (new URLs); an unpublish of an already cached URL took 10.9 s, because the webhook's cache.delete runs in another data center than the reader's, so a cached URL changes only when max-age expires.",
+        "Global invalidation (a zone purge or cache tags) needs a custom domain; on workers.dev, max-age is the bound.",
+        "Only document fields are delivered: references are ids, not expanded; no query endpoint beyond by id and by slug."
       ],
       "owner": "application",
       "acceptanceTests": [
@@ -1483,9 +1513,14 @@
     },
     {
       "id": "t.autosave-load",
-      "description": "20 editors autosaving once a second with 100 live queries: write latency p50/p99",
+      "description": "20 editors autosaving once a second for 30 s with 100 live queries: every save lands (600, none failed); p50 65 ms, p95 99 ms, p99 132 ms, max 226 ms",
       "runtime": "deployed",
-      "result": "not-run"
+      "result": "pass",
+      "command": "cd examples/cms && npm run test:deployed",
+      "ranAt": "2026-11-27",
+      "evidence": [
+        "fx.cms-deployed"
+      ]
     },
     {
       "id": "t.revisions",
@@ -1506,15 +1541,25 @@
     },
     {
       "id": "t.delivery-snapshot",
-      "description": "Publish to cached read on the delivery Worker; measure publish-to-live latency; a redelivered webhook writes the same snapshot",
+      "description": "Publish reaches the delivery path by id and slug (3.5 s deployed, 1.1 s under tapedb dev); a slug change and unpublish follow; cached reads hit; unsigned, wrongly signed and 5-minute-old deliveries refused; a late delivery of an older revision changes nothing",
       "runtime": "deployed",
-      "result": "not-run"
+      "result": "pass",
+      "command": "cd examples/cms && npm run test:deployed",
+      "ranAt": "2026-11-27",
+      "evidence": [
+        "fx.cms-deployed"
+      ]
     },
     {
       "id": "t.image-transform",
-      "description": "Resize and crop with hotspot through the Images binding from R2, cached",
+      "description": "Resize, focal-point crop, WebP by default, cache hit on repeat, private files not served; deployed run refused by the account's legacy Image Resizing billing (IMAGES_TRANSFORM_ERROR 9432)",
       "runtime": "deployed",
-      "result": "not-run"
+      "result": "fail",
+      "command": "cd examples/cms && npm run test:deployed -- test/image.test.mjs",
+      "ranAt": "2026-11-27",
+      "evidence": [
+        "fx.cms-deployed"
+      ]
     },
     {
       "id": "t.search",
