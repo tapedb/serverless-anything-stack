@@ -62,9 +62,11 @@ try {
   if (!url) throw new Error("could not read the workers.dev URL from wrangler deploy");
   const hookSecret = randomBytes(32).toString("base64url");
   const devToken = randomBytes(32).toString("base64url");
-  writeConfig({ __CMS_PUBLIC_URL__: JSON.stringify(url), __CMS_HOOK_SECRET__: JSON.stringify(hookSecret) });
-  wrangler(["deploy", "-c", config]);
 
+  // Secrets before the final deploy, so the version that serves the tests has
+  // them from its first request. (Set after it, a new version rolls out with the
+  // secrets while requests can still reach the old one: a test once hit
+  // "TAPEDB_CLAIM_SECRET is not configured" that way.)
   const secretsFile = join(scratch, "secrets.json");
   writeFileSync(secretsFile, JSON.stringify({
     TAPEDB_CLAIM_SECRET: randomBytes(32).toString("base64"),
@@ -73,16 +75,28 @@ try {
   }), { mode: 0o600 });
   wrangler(["secret", "bulk", secretsFile, "-c", config]);
   rmSync(secretsFile);
+  writeConfig({ __CMS_PUBLIC_URL__: JSON.stringify(url), __CMS_HOOK_SECRET__: JSON.stringify(hookSecret) });
+  wrangler(["deploy", "-c", config]);
 
+  // Ready when the final version answers: 5 claim + authenticated engine reads
+  // in a row succeed, and the hook route exists (it does only with the define).
   // A new workers.dev name can take a minute to answer.
   const deadline = Date.now() + 180_000;
-  for (;;) {
+  for (let streak = 0; streak < 5; ) {
+    let ok = false;
     try {
-      const r = await fetch(`${url}/_tapedb/claim`, { method: "POST", headers: { "content-type": "application/json", [DEV_TOKEN_HEADER]: devToken }, body: JSON.stringify({ workspaceId: crypto.randomUUID() }) });
-      if (r.ok) break;
+      const workspaceId = crypto.randomUUID();
+      const claim = await fetch(`${url}/_tapedb/claim`, { method: "POST", headers: { "content-type": "application/json", [DEV_TOKEN_HEADER]: devToken }, body: JSON.stringify({ workspaceId }) });
+      if (claim.ok) {
+        const { token } = await claim.json();
+        const schema = await fetch(`${url}/engine/workspaces/${workspaceId}/schema`, { headers: { authorization: `Bearer ${token}` } });
+        const hook = await fetch(`${url}/_cms/hook`, { method: "POST", body: "{}" });
+        ok = schema.ok && hook.status === 401;
+      }
     } catch {}
-    if (Date.now() > deadline) throw new Error(`${url} did not answer the claim route within 3 minutes`);
-    await new Promise((r) => setTimeout(r, 3000));
+    streak = ok ? streak + 1 : 0;
+    if (Date.now() > deadline) throw new Error(`${url} was not ready within 3 minutes`);
+    if (streak < 5) await new Promise((r) => setTimeout(r, ok ? 500 : 3000));
   }
   console.log(`\n${url} is up; running the suite against it\n`);
 
