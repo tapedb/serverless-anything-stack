@@ -1,4 +1,4 @@
-// t.concurrent-edit (cases/sanity): what concurrent editing does on TapeDB's
+// t.concurrent-edit: what concurrent editing does on TapeDB's
 // whole-attribute writes, and what the v1 field locks change.
 import { test } from "node:test";
 import assert from "node:assert/strict";

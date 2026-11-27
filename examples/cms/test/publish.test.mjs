@@ -1,4 +1,4 @@
-// t.fixture-publish (cases/sanity): a draft becomes the published document in
+// t.fixture-publish: a draft becomes the published document in
 // one transaction; readers never see a draft or half a publish; a publish
 // based on an older revision is refused.
 import { test } from "node:test";

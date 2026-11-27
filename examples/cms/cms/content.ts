@@ -1,6 +1,6 @@
 /**
- * A small content-type language compiled into TapeDB models (the Sanity case,
- * decision d.content-model). Each content type becomes two models:
+ * A small content-type language compiled into TapeDB models. Each content type
+ * becomes two models:
  *
  *   <type>       the document: its published values, `rev` and `publishedAt`.
  *                Strong references point here, so a referenced document cannot
@@ -11,13 +11,12 @@
  * Validation runs on the server, in check() rules inside the write's
  * transaction: a draft may be incomplete, a published document may not. Every
  * change to a document goes through `rev`: a write must carry row.rev + 1, so a
- * publish based on an older revision is refused (optimistic locking, as
- * Sanity's ifRevisionID).
+ * publish based on an older revision is refused (optimistic locking).
  *
  * Rich-text fields carry a field lock on the draft (`<field>LockedBy`,
  * `<field>LockedUntil`): a write to the field is refused unless the writer
  * holds an unexpired lock, and a lock is taken only when it is free, expired
- * or already the writer's (decision d.editing, v1).
+ * or already the writer's.
  */
 import { check, filter, model, role, t } from "@tapedb/tapedb/schema";
 

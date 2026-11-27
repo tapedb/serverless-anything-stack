@@ -1,4 +1,4 @@
-// t.fixture-content-model (cases/sanity): content types compile to models,
+// t.fixture-content-model: content types compile to models,
 // validation runs on the server, strong references hold, weak ones may dangle,
 // and an additive change to a content type generates a migration that needs no
 // data-loss flag.
