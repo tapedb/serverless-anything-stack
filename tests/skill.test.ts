@@ -30,3 +30,24 @@ test("SKILL.md frontmatter is strict YAML with name and description", () => {
   // Claude's skill upload allows 200 characters; the open format allows 1024.
   expect(fields.description.length <= 200).toBe(true);
 });
+
+import { execFileSync } from "node:child_process";
+import { existsSync, mkdtempSync } from "node:fs";
+import { tmpdir } from "node:os";
+
+test("SKILL.md fetches the latest version from this repository, and the fetched copy skips the fetch", () => {
+  const root = join(import.meta.dirname, "..");
+  const text = readFileSync(join(root, "SKILL.md"), "utf8");
+  const snippet = text.match(/## First: use the latest version[\s\S]*?```sh\n([\s\S]*?)```/)?.[1];
+  expect(Boolean(snippet)).toBe(true);
+  const repo = JSON.parse(readFileSync(join(root, "package.json"), "utf8")).repository.url as string;
+  expect(snippet!).toContain(`git clone --quiet --depth 1 ${repo} "$dir"`);
+  // The guard names the folder the snippet clones into, so the fetched copy does not fetch again.
+  const folder = snippet!.match(/\/([a-z-]+)"\n/)?.[1];
+  expect(folder).toBe("serverless-anything-stack-latest");
+  expect(text).toContain(`already sits in a folder\nnamed \`${folder}\``);
+  // Run it offline against this checkout in place of GitHub.
+  const tmp = mkdtempSync(join(tmpdir(), "sas-latest-"));
+  execFileSync("sh", ["-c", snippet!.replace(repo, `file://${root}`)], { env: { ...process.env, TMPDIR: tmp } });
+  expect(existsSync(join(tmp, folder!, "SKILL.md"))).toBe(true);
+});

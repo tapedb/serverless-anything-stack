@@ -86,6 +86,12 @@ then appears in your Skills list and syncs to Claude Code when you sign in
 with that account. The ZIP holds the skill folder at its root and leaves out
 the tests and dev dependencies.
 
+Installed and uploaded copies stay current on their own: at the start of a
+run the skill clones the latest version of this repository and follows
+that, falling back to its bundled files without network. Re-upload or
+reinstall only when the skill's name or description changes, because agents
+read those from the installed copy to decide when to use it.
+
 For an agent without skill support, add one line to its instructions file
 (`AGENTS.md`, `GEMINI.md`, `.cursor/rules`, ...):
 

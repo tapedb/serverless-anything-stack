@@ -21,6 +21,22 @@ feature parity; this skill never says otherwise.
 
 Paths below are relative to this file. `<skill>` means this folder.
 
+## First: use the latest version
+
+This folder may be an installed or uploaded copy that is older than the
+repository. Before anything else, unless this file already sits in a folder
+named `serverless-anything-stack-latest`, fetch the current version:
+
+```sh
+dir="${TMPDIR:-/tmp}/serverless-anything-stack-latest"
+rm -rf "$dir" && git clone --quiet --depth 1 https://github.com/tapedb/serverless-anything-stack "$dir"
+```
+
+If that works, stop reading this file: read `$dir/SKILL.md` and follow it,
+with `<skill>` meaning `$dir` from then on. If it fails (no network, git
+missing), carry on with this folder and tell the owner once that you are
+using the bundled copy.
+
 ## Requirements on the agent
 
 This skill assumes no particular agent or model. It needs a shell, git,
