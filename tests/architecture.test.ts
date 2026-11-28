@@ -1,7 +1,5 @@
 import { expect, test } from "bun:test";
-import { checkArchitecture, validateFile } from "../scripts/validate";
-import { readdirSync } from "node:fs";
-import { join } from "node:path";
+import { checkArchitecture } from "../scripts/validate";
 
 const base = () => ({
   evidence: [{ id: "ev", kind: "source", ref: "x", note: "x" }],
@@ -52,9 +50,4 @@ test("an ingestion workload reused in TapeDB is refused", () => {
   a.capabilities[0].candidate = "Queues into Basin";
   a.capabilities[0].decision = "external";
   expect(rules(a)).toEqual([]);
-});
-
-test("every case in the repository passes the architecture rules", () => {
-  const root = join(import.meta.dir, "..", "cases");
-  for (const name of readdirSync(root)) expect(validateFile(join(root, name, "assessment.json"))).toEqual([]);
 });

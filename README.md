@@ -42,22 +42,16 @@ in it that it is not for.
 | `scripts/validate.ts` | schema plus rule validation: evidence, architecture and delivery gates |
 | `scripts/report.ts` | renders `report.md` from an assessment and `delivery.md` from a project |
 | `recipes/` | transactional, realtime, identity, async, ingestion, analytics patterns |
-| `cases/` | Sanity (assessment plus delivery: the worked example), Keycloak, Chatwoot and GlitchTip, at pinned upstream revisions |
-| `examples/` | executable fixtures: `inbox` (Chatwoot patterns), `ingest` (GlitchTip patterns), `cms` (Sanity patterns, also runs deployed) |
+| `examples/` | the recipe fixtures: `inbox` (transactional and realtime), `ingest` (ingestion and async) |
 | `docs/adr/` | decisions about this repository |
 | `LICENSES.md` | license review |
 
-## The cases, as of 2026-11-28
+## Where a run's output goes
 
-| case | approach | capabilities | tests that ran |
-| --- | --- | --- | --- |
-| [Sanity](cases/sanity/report.md) ([delivery](cases/sanity/delivery.md)) | compatible rewrite as a CMS product on TapeDB: workspace per dataset, Studio on live queries and presence, delivery through webhooks, R2 and the Cache API; go with exclusions | 2 verified, 16 partial, 6 unverified, 1 not applicable; 6 of 7 musts done | 9 passed in workerd (the cms fixture, TapeDB webhooks and sessions), 7 passed deployed, 1 failed deployed (image transforms, account billing), 4 not run |
-| [Keycloak](cases/keycloak/report.md) | compatible OIDC provider on Better Auth and TapeDB; SAML, LDAP and configurable flows excluded or external | 3 verified, 5 partial, 6 unverified, 4 unsupported | 8 passed in workerd (TapeDB's auth tests); OIDC conformance not run |
-| [Chatwoot](cases/chatwoot/report.md) | compatible rewrite: TapeDB per account for state and live views; Queues and Workflows for delivery and timers | 2 verified, 6 partial, 5 unverified, 1 not applicable | 6 passed deployed (TapeDB staging scenarios), 3 passed in workerd (TapeDB webhooks, the inbox fixture) |
-| [GlitchTip](cases/glitchtip/report.md) | ingest Worker, Queues, grouping consumer; issues in TapeDB, raw events in Basin | 5 partial, 6 unverified | 2 passed deployed (TapeDB staging scenarios), 3 passed in workerd (TapeDB webhooks, the ingest fixture) |
-
-No case claims parity. Each report lists its gaps, risks, decisions and the
-tests still to run.
+Into the application's own repository: `docs/serverless/` for the
+assessment, project, reports, diagrams and ADRs; `spikes/` for the fixtures
+that prove claims; the code, tests and CI next to them. Nothing a run
+produces is written to this repository (ADR 0005).
 
 ## Use the skill
 
@@ -82,13 +76,12 @@ Requires [Bun](https://bun.sh) 1.4 or newer; the fixtures also need Node 22.18+
 and npm.
 
 ```bash
-bun run check          # unit tests, validation of every case, report freshness
-bun run validate       # validation only
-bun run report         # regenerate cases/*/report.md and delivery.md
+bun run check          # unit tests of the validator, reports and catalogs
 
 # against an application's own docs/serverless/ directory
 bun scripts/validate.ts ../my-app/docs/serverless
-bun scripts/report.ts ../my-app/docs/serverless
+bun scripts/report.ts ../my-app/docs/serverless          # writes report.md, delivery.md
+bun scripts/report.ts --check ../my-app/docs/serverless  # fails if they are stale
 bun run test:fixtures  # install and run every fixture (starts tapedb dev for each)
 ```
 
@@ -97,17 +90,13 @@ fixture writes fresh local secrets to `.dev.vars` on first run.
 
 ## Limitations
 
-- The `inbox` and `ingest` fixtures have run only locally (workerd under
-  `tapedb dev`, local Queues). The `cms` fixture also runs against a
-  temporary deployment (`npm run test:deployed`, from a machine with a
-  wrangler login). Other deployed results come from TapeDB's staging runs.
-- Only the Sanity case has gone through the engineering phases, and its
-  product lives in its own repository; the other cases stop at the report.
-- Basin SQL latency, deployed Queues behaviour, burst load, provider delivery
-  with a failing provider, an OIDC conformance run and key rotation are not
-  tested. Capabilities that depend on them say so.
+- The recipe fixtures run locally (workerd under `tapedb dev`, local
+  Queues); deployed results the recipes cite come from TapeDB's staging runs.
+- The recipes do not yet test Basin SQL latency, deployed Queues behaviour,
+  burst load, provider delivery with a failing provider, OIDC conformance or
+  key rotation; each recipe says what it has not tested.
 - The architecture rules match on component names; review still matters.
-- TapeDB gaps found while building this are recorded in
+- TapeDB gaps found along the way are recorded in
   `catalog/tapedb.json` (`findings`) and reported upstream: the admin HTTP
   API does not apply schema defaults, and before tapedb 0.4.2 `init` left
   `npx tapedb-cli` resolving to a deprecated registry package.

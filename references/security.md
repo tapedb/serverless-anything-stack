@@ -26,8 +26,8 @@ Record the upstream license at the pinned revision. Rules for this stack:
 
 - Assessments and fixtures describe and re-implement behaviour; they copy no
   upstream code. That keeps them independent of the upstream license, which
-  matters when a repository mixes licenses (Chatwoot: MIT outside
-  `enterprise/`, a separate license inside it).
+  matters when a repository mixes licenses (MIT outside an `enterprise/`
+  folder and a separate license inside it, for example).
 - If code must be copied, check compatibility first, keep the notice, and say
   so in the report.
 - Protocol compatibility (an OIDC endpoint, a Sentry envelope) is not

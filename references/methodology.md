@@ -75,5 +75,6 @@ Name acceptance tests before building, with the runtime they will run in
 and their `level` (unit, integration, e2e, load, security, smoke; see
 `testing.md`). A
 test that has not run is `result: not-run`; the list of those is the backlog.
-Fixtures live in `examples/` and run with `npm test` inside each; they use the
+An application's fixtures and spikes live in its own repository. The
+fixtures in this repository's `examples/` test the recipes; like those, they use the
 published packages, never source checkouts.

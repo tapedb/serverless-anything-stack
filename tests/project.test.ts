@@ -174,3 +174,36 @@ describe("project", () => {
     expect(text).toContain("- **R2 LDAP sign-in:** No LDAP on Workers");
   });
 });
+
+import { spawnSync } from "node:child_process";
+import { minimal } from "./shapes";
+
+describe("scripts on an application's docs/serverless", () => {
+  test("validate and report take a directory and write report.md and delivery.md", () => {
+    const dir = mkdtempSync(join(tmpdir(), "sas-app-"));
+    const a = { ...minimal(), verdict: { recommendation: "go", summary: "Fits." } };
+    a.tests.push({ id: "t.e2e", description: "e2e", runtime: "deployed", result: "pass", ranAt: "2026-11-28" } as never);
+    const p = project();
+    p.id = a.id;
+    p.requirements[1].capabilities = [];
+    p.useCases[0].acceptance[0].tests = ["t.tx", "t.e2e"];
+    writeFileSync(join(dir, "assessment.json"), JSON.stringify(a));
+    writeFileSync(join(dir, "project.json"), JSON.stringify(p));
+    writeFileSync(join(dir, "d.md"), "```mermaid\nflowchart LR\n a --> b\n```\n");
+    const root = join(import.meta.dir, "..");
+    const validate = spawnSync("bun", [join(root, "scripts/validate.ts"), dir], { encoding: "utf8" });
+    expect(validate.stdout).not.toContain("FAIL");
+    expect(validate.status).toBe(0);
+    const report = spawnSync("bun", [join(root, "scripts/report.ts"), dir], { encoding: "utf8" });
+    expect(report.status).toBe(0);
+    expect(readFileSync(join(dir, "delivery.md"), "utf8")).toContain("**Release gate:** 1 of 1 must requirements done");
+    expect(readFileSync(join(dir, "report.md"), "utf8")).toContain("## Verdict");
+    const check = spawnSync("bun", [join(root, "scripts/report.ts"), "--check", dir], { encoding: "utf8" });
+    expect(check.status).toBe(0);
+  });
+
+  test("validate without a directory prints usage", () => {
+    const r = spawnSync("bun", [join(import.meta.dir, "../scripts/validate.ts")], { encoding: "utf8" });
+    expect(r.status).toBe(2);
+  });
+});

@@ -1,7 +1,7 @@
 import { model, role, schema, t } from "@tapedb/tapedb/schema";
 
 /**
- * A support inbox, one TapeDB workspace per account (the Chatwoot case).
+ * A support inbox, one TapeDB workspace per account.
  *
  * Unread is not a stored counter: it is a live count of contact messages sent
  * after the conversation's lastReadAt. A stored counter would need

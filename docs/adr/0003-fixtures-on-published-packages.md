@@ -14,7 +14,7 @@ Each fixture in `examples/` is its own npm project pinned to an exact
 published `@tapedb/tapedb` and `@tapedb/cli`, generates its own local secrets,
 starts `tapedb dev` (workerd, real WorkspaceRooms, local Queues) from its
 tests, and talks to it through the public client or the admin HTTP API.
-Results are recorded in the cases as `runtime: workerd-local`.
+Results are recorded as `runtime: workerd-local`.
 
 ## Consequences
 

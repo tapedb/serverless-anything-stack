@@ -1,5 +1,5 @@
 /**
- * Ingest fixture (GlitchTip case).
+ * Ingest fixture (recipes: ingestion, async).
  *
  *   POST /api/<project>/envelope/   Sentry envelope; 200 only after the event is on the queue
  *   queue "events"                  grouping consumer: issue upserts + one tally per message

@@ -18,7 +18,7 @@ has not run is `not-run`; the list of those is the backlog in `delivery.md`.
 ## Rules
 
 - **One suite, two targets.** Integration and e2e tests read the base URL
-  from an environment variable (`APP_URL`, as `CMS_URL` in `examples/cms`) and
+  from an environment variable (`APP_URL`) and
   start a local server only when it is unset. The same tests then run
   against `tapedb dev` and against a deployment.
 - **Negative controls.** For each guarantee, a test that would fail if the
@@ -43,8 +43,8 @@ has not run is `not-run`; the list of those is the backlog in `delivery.md`.
 - One spec per use case (`e2e/uc-1-create-repository.spec.ts`), named after
   the use case so failures trace back to it.
 - Sign in through the app's real flow, or through a test-only route that
-  only the Preview enables and that answers only a per-run token (the
-  pattern in `examples/cms/scripts/deployed.mjs`). Never in production.
+  only the Preview enables and that answers only a random per-run token
+  passed to the tests in an environment variable. Never in production.
 - CI runs e2e after the Preview deploy, against its URL
   (`templates/ci.yml`), and uploads the Playwright report as an artifact.
 

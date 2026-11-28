@@ -1,9 +1,8 @@
-// Inbox fixture (Chatwoot case) against `tapedb dev`: workerd, a real
+// Inbox fixture (recipes: transactional, realtime) against `tapedb dev`: workerd, a real
 // WorkspaceRoom per account, the real client over its socket.
 //
 //   npm test
 //
-// Covers t.fixture-inbox and t.fixture-isolation in cases/chatwoot.
 import { spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { after, before, test } from "node:test";

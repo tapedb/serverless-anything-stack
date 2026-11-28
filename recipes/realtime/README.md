@@ -17,8 +17,8 @@ refuses it unless an exception records why (for example, binary media frames).
   at 50 ms after a commit.
 - Scope presence rooms small (an inbox, a document). Fan-out grows with the
   square of the room.
-- Presence ends with the socket. A "seen in the last 90 s" rule like
-  Chatwoot's is a stored timestamp, not presence.
+- Presence ends with the socket. A "seen in the last 90 s" rule is a stored
+  timestamp, not presence.
 - Each live query re-runs on matching writes; count that in reads and cost.
 
 **Tested by:** `examples/inbox` (a live count updated by another client) and

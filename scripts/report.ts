@@ -3,8 +3,8 @@
  * delivery.md from it (requirements by MoSCoW, use cases, traceability to
  * tests, milestones, environments and the release gate).
  *
- *   bun scripts/report.ts [dir ...]          write reports (default: every cases/<name>/)
- *   bun scripts/report.ts --check [dir ...]  fail if a committed report is stale
+ *   bun scripts/report.ts <dir> ...          write reports (usually <app>/docs/serverless)
+ *   bun scripts/report.ts --check <dir> ...  fail if a committed report is stale
  *
  * The report is generated so it cannot drift from the data the validator
  * checks. Write prose that belongs in it into the assessment.
@@ -196,7 +196,11 @@ function outputs(dir: string): Array<[string, string]> {
 if (import.meta.main) {
   const check = process.argv.includes("--check");
   const args = process.argv.slice(2).filter((x) => x !== "--check");
-  const dirs = args.length ? args.map((x) => resolve(x)) : readdirSync(join(ROOT, "cases")).map((name) => join(ROOT, "cases", name));
+  if (args.length === 0) {
+    console.log("usage: bun scripts/report.ts [--check] <app>/docs/serverless [...]");
+    process.exit(2);
+  }
+  const dirs = args.map((x) => resolve(x));
   const show = (file: string) => file.replace(`${ROOT}/`, "");
   let stale = 0;
   for (const dir of dirs) {

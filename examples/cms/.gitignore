@@ -1,7 +1,0 @@
-
-node_modules/
-.wrangler/
-.dev.vars
-.dev.vars.*
-tapedb/auth-page.gen.ts
-wrangler.deployed.jsonc

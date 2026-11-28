@@ -13,8 +13,8 @@ library only.
 
 ## Fixture dependencies (`examples/*`, not distributed)
 
-Read from the installed `package.json` files of each fixture (78 packages
-each, identical sets):
+Read from the installed `package.json` files of each fixture on 2026-11-26
+(78 packages each, identical sets):
 
 | license | packages |
 | --- | --- |
@@ -32,16 +32,11 @@ tooling loads dynamically. It is not bundled into any Worker and nothing here
 redistributes it, so it places no obligation on this repository. Re-check if
 the fixtures are ever packaged with their `node_modules`.
 
-## Upstreams assessed
+## Upstreams
 
-| upstream | revision | license | used here |
-| --- | --- | --- | --- |
-| Keycloak | `3e5160a` | Apache-2.0 | read for the assessment; no code copied |
-| Chatwoot | `eb4fabb` | MIT outside `enterprise/`; `enterprise/` under its own license | read for the assessment; no code copied; enterprise features excluded |
-| GlitchTip | `76307e8` | MIT | read for the assessment; no code copied |
+This repository holds no assessments of other projects. The skill records an
+upstream's license in the application's own `assessment.json`, and the rules
+for using upstream code are in `references/security.md`.
 
-The fixtures are clean-room: they implement behaviour described in the
-assessments (an inbox, Sentry-style envelope ingest and grouping) without
-upstream code. Protocol compatibility is not copying; upstream names and marks
-belong to their owners, and nothing here presents itself as the upstream
-product.
+The fixtures are clean-room: they implement generic patterns (an inbox,
+envelope ingest and grouping) without code from any upstream.

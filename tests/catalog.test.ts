@@ -25,14 +25,3 @@ describe("catalogs", () => {
     }
   });
 });
-
-import { render } from "../scripts/report";
-import { readdirSync as listCases } from "node:fs";
-
-test("every committed report matches its assessment", () => {
-  const root = join(import.meta.dir, "..", "cases");
-  for (const name of listCases(root)) {
-    const a = JSON.parse(readFileSync(join(root, name, "assessment.json"), "utf8"));
-    expect(readFileSync(join(root, name, "report.md"), "utf8")).toBe(render(a));
-  }
-});

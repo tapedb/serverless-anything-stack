@@ -355,7 +355,6 @@
       "id": "api-filter-operators",
       "checkedAt": "2026-11-27",
       "evidence": [
-        "examples/cms",
         "API.md (Filters) and README.md (Reads) in @tapedb/tapedb 0.4.2"
       ],
       "text": "API.md's Filters table names the operators $ne, $in, $nin, $gt, $gte, $lt, $lte, $isNull, $like and $ilike, but the 0.4.2 client and filter() rules accept the README's names (not, in, notIn, gt, gte, lt, lte, isNull, like, ilike) and throw Unknown filter \"$gt\" on the $ forms. Inside a filter() read rule the throw denies every row with no error to the caller (the schema document shows where: []), so a rule written from API.md silently hides all rows."

@@ -25,5 +25,4 @@ nothing else.
 
 **Tested by:** `examples/ingest` (per-message acks, a poison message retried
 and dead-lettered without holding back its sibling, a redelivery counted
-once). A provider-delivery fixture with a failing provider is still to do
-(Chatwoot `t.fixture-delivery`).
+once). A provider-delivery fixture with a failing provider is still to do.

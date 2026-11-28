@@ -32,6 +32,5 @@ Assessments gain a `verdict` (go, go-with-exclusions, no-go) and tests a
 ## Consequences
 
 The evidence rules from ADR 0001 now cover delivery as well as assessment:
-"done" and "deployed" mean what a test showed. The Sanity case carries a
-full `project.json` as the worked example. The other cases stay
-assessments.
+"done" and "deployed" mean what a test showed. Where the records live
+is decided in ADR 0005.

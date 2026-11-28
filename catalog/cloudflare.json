@@ -195,7 +195,7 @@
     }
   ],
   "toCheck": [
-    "K2 / K2 Streams (durable logs): a candidate for GlitchTip-style ingestion; not yet read.",
+    "K2 / K2 Streams (durable logs): a candidate ingestion buffer for error and event intake; not yet read.",
     "Email Service: TapeDB's mailer uses its send_email binding (beta when TapeDB adopted it)."
   ]
 }

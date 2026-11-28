@@ -1,5 +1,5 @@
 /**
- * Validates assessments (cases/<name>/assessment.json) against the schemas in
+ * Validates an application's assessment.json against the schemas in
  * schemas/ and against the rules a schema cannot state:
  *
  * - every evidence, test and capability reference resolves;
@@ -20,9 +20,9 @@
  * these schemas use (type, enum, const, required, properties,
  * additionalProperties: false, items, minItems, minLength, pattern, $ref).
  *
- *   bun scripts/validate.ts [dir-or-assessment.json ...]
- *     (default: every cases/<name>/; a directory means its assessment.json and,
- *     if present, its project.json)
+ *   bun scripts/validate.ts <dir-or-assessment.json> ...
+ *     (a directory, usually <app>/docs/serverless, means its assessment.json
+ *     and, if present, its project.json)
  */
 
 import { readdirSync, readFileSync, existsSync } from "node:fs";
@@ -441,9 +441,11 @@ export function validateProject(file: string): Problem[] {
 
 if (import.meta.main) {
   const args = process.argv.slice(2);
-  const dirs = args.length > 0
-    ? args.map((arg) => (arg.endsWith(".json") ? dirname(resolve(arg)) : resolve(arg)))
-    : readdirSync(join(ROOT, "cases")).map((name) => join(ROOT, "cases", name));
+  if (args.length === 0) {
+    console.log("usage: bun scripts/validate.ts <app>/docs/serverless [...]");
+    process.exit(2);
+  }
+  const dirs = args.map((arg) => (arg.endsWith(".json") ? dirname(resolve(arg)) : resolve(arg)));
   const targets: Array<[string, (file: string) => Problem[]]> = [];
   for (const dir of dirs) {
     if (existsSync(join(dir, "assessment.json"))) targets.push([join(dir, "assessment.json"), validateFile]);

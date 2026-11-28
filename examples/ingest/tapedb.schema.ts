@@ -1,7 +1,7 @@
 import { model, schema, t } from "@tapedb/tapedb/schema";
 
 /**
- * Error tracking, one TapeDB workspace per organization (the GlitchTip case).
+ * Error tracking, one TapeDB workspace per organization.
  *
  * Raw events never enter TapeDB; only issues do. An issue's count is the sum
  * of its tallies, one tally per accepted queue message, keyed by the message

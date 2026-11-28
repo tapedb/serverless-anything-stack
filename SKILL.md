@@ -50,7 +50,15 @@ Run it after every phase.
 
 ## Where things live
 
-The application gets its own repository, never this one. Create it (on
+Everything a run produces goes in the application's own repository: the
+assessment, the report, spikes, code, tests, deploy records. Never write
+into this skill's folder or its repository, never add the run to it as a
+case or an example, and never record what was tested here. The skill stays
+the same from one run to the next; only catalog facts you re-checked
+(phase "Before starting") may be proposed back, as a separate change the
+owner reviews.
+
+The application gets its own repository. Create it (on
 GitHub or wherever the owner keeps code) only with the owner's go-ahead,
 which Gate 1 can include; until then work in a local folder.
 
@@ -61,6 +69,7 @@ which Gate 1 can include; until then work in a local folder.
     report.md        delivery.md         # generated: bun <skill>/scripts/report.ts docs/serverless
     diagrams/*.md                        # one mermaid block per file
     adr/NNNN-*.md                        # decisions about the application
+  spikes/<claim>/                       # fixtures that prove a claim during assessment
   src/  (Worker)   app/  (UI, if any)   tapedb.schema.ts   wrangler.jsonc
   test/unit/   test/integration/   e2e/
   .github/workflows/ci.yml              # from templates/ci.yml
@@ -109,7 +118,8 @@ which Gate 1 can include; until then work in a local folder.
    Record semantic gaps: what the candidate does differently, not only what
    it lacks.
 5. **Prove the risky claims early.** For each capability the verdict hinges
-   on, build the smallest fixture that shows it (see `examples/`) and run it.
+   on, build the smallest fixture that shows it in the application's
+   `spikes/` (the fixtures in `<skill>/examples/` show the pattern) and run it.
    A verdict resting on untested beta features says so.
 6. **Write the verdict** in `assessment.json`: `go`, `go-with-exclusions`
    (list each exclusion and its nearest alternative) or `no-go` (with the
@@ -189,12 +199,10 @@ commit. Reports are generated; do not edit them by hand.
   deploy to production, publish packages, buy plans or send messages without
   their explicit go-ahead. Report blockers instead of working around them.
 
-## Worked examples
+## Reference shapes
 
-- `cases/sanity/`: a full run through phase 7: assessment with a verdict,
-  `project.json` with MoSCoW, use cases, diagrams and milestones, and the
-  generated `report.md` and `delivery.md`. Read it before phase 3.
-- `cases/keycloak/`, `cases/chatwoot/`, `cases/glitchtip/`: assessments
-  only; read one before phase 1.
-- `examples/`: fixtures (`inbox`, `ingest`, `cms`) showing how tests run
-  under `tapedb dev` and against a deployment.
+- `schemas/`: what `assessment.json` and `project.json` hold.
+- `tests/shapes.ts` and `tests/project.test.ts`: the smallest valid
+  assessment and project.
+- `examples/inbox`, `examples/ingest`: the stack's own recipe fixtures, showing
+  how a fixture runs under `tapedb dev` on published packages.

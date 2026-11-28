@@ -1,9 +1,8 @@
-// Ingest fixture (GlitchTip case) against `tapedb dev`: workerd, local Queues
+// Ingest fixture (recipes: ingestion, async) against `tapedb dev`: workerd, local Queues
 // with a dead-letter queue, a WorkspaceRoom per organization.
 //
 //   npm test
 //
-// Covers t.fixture-ingest and t.fixture-grouping in cases/glitchtip.
 import { spawn } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { after, before, test } from "node:test";

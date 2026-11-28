@@ -19,5 +19,5 @@ metrics.
 - Interactive views over Basin SQL need a latency measurement before they are
   promised; keep the newest items a screen needs in the workspace.
 
-**Tested by:** nothing here yet. Every capability that depends on Basin is
-`unverified` in the cases.
+**Tested by:** nothing here yet. A capability that depends on Basin stays
+`unverified` until the application's own tests run against it.
