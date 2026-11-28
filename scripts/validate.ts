@@ -11,15 +11,22 @@
  * - a verified capability's candidate evidence was checked at a date, and
  *   tests that passed say when.
  *
+ * and, when a project.json sits next to the assessment, the delivery rules in
+ * checkProject: MoSCoW requirements trace to use cases, use cases to tests,
+ * engineering waits for the owner's approval, finished milestones and deployed
+ * environments are backed by passing tests.
+ *
  * No dependencies: the schema checker below implements the JSON Schema subset
  * these schemas use (type, enum, const, required, properties,
  * additionalProperties: false, items, minItems, minLength, pattern, $ref).
  *
- *   bun scripts/validate.ts [file.json ...]   (default: every cases/<name>/assessment.json)
+ *   bun scripts/validate.ts [dir-or-assessment.json ...]
+ *     (default: every cases/<name>/; a directory means its assessment.json and,
+ *     if present, its project.json)
  */
 
 import { readdirSync, readFileSync, existsSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
 
 type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
 type Schema = Record<string, unknown>;
@@ -144,6 +151,15 @@ export function checkRules(assessment: Assessment): Problem[] {
       else if (item.kind !== "pricing") problems.push({ path: `$.costAssumptions.${cost.driver}`, message: `${cost.source} is not pricing evidence` });
     }
   }
+  const verdict = (assessment as Assessment & { verdict?: { recommendation: string; excluded?: string[]; alternative?: string }; approach?: string }).verdict;
+  const approach = (assessment as { approach?: string }).approach;
+  if (verdict) {
+    if (verdict.recommendation === "no-go" && !verdict.alternative) problems.push({ path: "$.verdict", message: "no-go names the nearest honest alternative (alternative)" });
+    if (verdict.recommendation === "go" && (verdict.excluded ?? []).length > 0) problems.push({ path: "$.verdict", message: "go with exclusions is go-with-exclusions" });
+    if (verdict.recommendation === "go-with-exclusions" && (verdict.excluded ?? []).length === 0) problems.push({ path: "$.verdict", message: "go-with-exclusions lists what is excluded" });
+    if (approach === "infeasible" && verdict.recommendation !== "no-go") problems.push({ path: "$.verdict", message: "an infeasible approach is no-go" });
+    if (approach === "undecided") problems.push({ path: "$.verdict", message: "a verdict needs a decided approach" });
+  }
   for (const test of assessment.tests) {
     resolves(test.evidence, `$.tests.${test.id}`);
     if (test.result !== "not-run" && !test.ranAt) problems.push({ path: `$.tests.${test.id}`, message: "a test that ran says when (ranAt)" });
@@ -232,32 +248,215 @@ export function checkArchitecture(assessment: Assessment): Problem[] {
   return problems;
 }
 
-export function validateFile(file: string): Problem[] {
-  let parsed: Json;
-  try {
-    parsed = JSON.parse(readFileSync(file, "utf8")) as Json;
-  } catch (error) {
-    return [{ path: "$", message: `not JSON: ${(error as Error).message}` }];
+type Project = {
+  approval: { status: string; by?: string; at?: string };
+  actors: Array<{ id: string }>;
+  requirements: Array<{ id: string; title: string; priority: string; capabilities: string[]; useCases: string[] }>;
+  useCases: Array<{ id: string; actor: string; acceptance: Array<{ criterion: string; tests: string[] }> }>;
+  diagrams: Array<{ id: string; kind: string; file: string; covers?: string[] }>;
+  milestones: Array<{ id: string; requirements: string[]; status: string }>;
+  environments: Array<{ name: string; status: string; approvedBy?: string; deployedAt?: string; version?: string; e2eTests?: string[] }>;
+};
+
+/** Test ids behind a requirement: every acceptance test of every use case it names. */
+export function requirementTests(project: Project, requirementId: string): string[] {
+  const requirement = project.requirements.find((r) => r.id === requirementId);
+  if (!requirement) return [];
+  const cases = project.useCases.filter((u) => requirement.useCases.includes(u.id));
+  return [...new Set(cases.flatMap((u) => u.acceptance.flatMap((a) => a.tests)))];
+}
+
+/** A requirement is done when it has tests and every one of them passed. */
+export function requirementDone(project: Project, assessment: Pick<Assessment, "tests">, requirementId: string): boolean {
+  const tests = new Map(assessment.tests.map((t) => [t.id, t]));
+  const ids = requirementTests(project, requirementId);
+  return ids.length > 0 && ids.every((id) => tests.get(id)?.result === "pass");
+}
+
+/**
+ * Delivery rules. `baseDir` is the directory of project.json; diagram files
+ * are checked there when it is given.
+ */
+export function checkProject(project: Project, assessment: Assessment & { verdict?: { recommendation: string } }, baseDir?: string): Problem[] {
+  const problems: Problem[] = [];
+  const add = (path: string, message: string) => problems.push({ path, message });
+  const tests = new Map(assessment.tests.map((t) => [t.id, t]));
+  const capabilities = new Map(assessment.capabilities.map((c) => [c.id, c]));
+  const actors = new Set(project.actors.map((a) => a.id));
+  const useCases = new Map(project.useCases.map((u) => [u.id, u]));
+  const requirements = new Map(project.requirements.map((r) => [r.id, r]));
+  for (const [list, what] of [
+    [project.actors, "$.actors"],
+    [project.requirements, "$.requirements"],
+    [project.useCases, "$.useCases"],
+    [project.diagrams, "$.diagrams"],
+    [project.milestones, "$.milestones"],
+  ] as Array<[Array<{ id: string }>, string]>) {
+    const seen = new Set<string>();
+    for (const { id } of list) {
+      if (seen.has(id)) add(what, `duplicate id ${id}`);
+      seen.add(id);
+    }
   }
-  const problems = checkSchema(parsed, SCHEMAS["assessment.schema.json"]);
+
+  // Approval gates engineering.
+  const started =
+    project.milestones.some((m) => m.status !== "planned") ||
+    project.environments.some((e) => e.name !== "local" && e.status === "deployed");
+  if (project.approval.status === "approved") {
+    if (!project.approval.by || !project.approval.at) add("$.approval", "an approval says who approved and when (by, at)");
+    if (!assessment.verdict) add("$.approval", "approval needs a verdict in the assessment (verdict.recommendation)");
+    else if (assessment.verdict.recommendation === "no-go") add("$.approval", "the assessment says no-go; engineering cannot be approved against it");
+  }
+  if (started && project.approval.status !== "approved") {
+    add("$.approval", "engineering has started (a milestone is under way or an environment is deployed) without the owner's approval");
+  }
+
+  // Requirements trace to capabilities and use cases.
+  const referenced = new Set<string>();
+  for (const r of project.requirements) {
+    const path = `$.requirements.${r.id}`;
+    for (const id of r.capabilities) {
+      const capability = capabilities.get(id);
+      if (!capability) add(path, `unknown capability ${id}`);
+      else if (r.priority === "must" && (capability.status === "unsupported" || capability.status === "not-applicable")) {
+        add(path, `a must depends on ${id}, which is ${capability.status}; choose another candidate or make it wont`);
+      }
+    }
+    for (const id of r.useCases) {
+      if (!useCases.has(id)) add(path, `unknown use case ${id}`);
+      referenced.add(id);
+    }
+    if (r.priority !== "wont" && r.useCases.length === 0) add(path, `a ${r.priority} requirement needs at least one use case`);
+  }
+  if (!project.requirements.some((r) => r.priority === "must")) add("$.requirements", "no must requirements; MoSCoW needs at least one must");
+
+  // Use cases trace to tests.
+  for (const u of project.useCases) {
+    const path = `$.useCases.${u.id}`;
+    if (!actors.has(u.actor)) add(path, `unknown actor ${u.actor}`);
+    if (!referenced.has(u.id)) add(path, "no requirement names this use case");
+    u.acceptance.forEach((a, index) => {
+      if (a.tests.length === 0) add(`${path}.acceptance[${index}]`, "an acceptance criterion needs a test");
+      for (const id of a.tests) if (!tests.has(id)) add(`${path}.acceptance[${index}]`, `unknown test ${id}`);
+    });
+  }
+
+  // Diagrams: the design set exists before engineering starts.
+  for (const d of project.diagrams) {
+    const path = `$.diagrams.${d.id}`;
+    for (const id of d.covers ?? []) if (!useCases.has(id)) add(path, `unknown use case ${id}`);
+    if (baseDir) {
+      const file = join(baseDir, d.file);
+      if (!existsSync(file)) add(path, `missing file ${d.file}`);
+      else if (!readFileSync(file, "utf8").includes("```mermaid")) add(path, `${d.file} has no mermaid block`);
+    }
+  }
+  if (project.approval.status === "approved" || started) {
+    for (const kind of ["context", "container", "data-model", "deployment"]) {
+      if (!project.diagrams.some((d) => d.kind === kind)) add("$.diagrams", `the design needs a ${kind} diagram`);
+    }
+    const sequenced = new Set(project.diagrams.filter((d) => d.kind === "sequence").flatMap((d) => d.covers ?? []));
+    for (const r of project.requirements.filter((r) => r.priority === "must")) {
+      for (const id of r.useCases) if (useCases.has(id) && !sequenced.has(id)) add("$.diagrams", `must use case ${id} has no sequence diagram`);
+    }
+  }
+
+  // Milestones: every must is planned; done means its tests passed.
+  const planned = new Set(project.milestones.flatMap((m) => m.requirements));
+  for (const r of project.requirements) {
+    if (r.priority === "must" && !planned.has(r.id)) add(`$.requirements.${r.id}`, "a must requirement is in no milestone");
+  }
+  for (const m of project.milestones) {
+    const path = `$.milestones.${m.id}`;
+    for (const id of m.requirements) {
+      const r = requirements.get(id);
+      if (!r) add(path, `unknown requirement ${id}`);
+      else if (r.priority === "wont") add(path, `${id} is wont and cannot be scheduled`);
+    }
+    if (m.status === "done") {
+      for (const id of m.requirements) {
+        if (requirements.has(id) && !requirementDone(project, assessment, id)) add(path, `done, but ${id} has acceptance tests that have not passed`);
+      }
+    }
+  }
+
+  // Environments: a shared deploy has an owner's go-ahead and e2e tests behind it.
+  for (const e of project.environments) {
+    const path = `$.environments.${e.name}`;
+    if (e.status !== "deployed") continue;
+    if (!e.deployedAt || !e.version) add(path, "a deployed environment says what runs there and since when (version, deployedAt)");
+    if ((e.name === "staging" || e.name === "production") && !e.approvedBy) add(path, `${e.name} needs the owner's go-ahead (approvedBy)`);
+    if (e.name !== "local") {
+      const e2e = e.e2eTests ?? [];
+      if (e2e.length === 0) add(path, "a deployed environment needs e2e tests that ran against it");
+      for (const id of e2e) {
+        const t = tests.get(id);
+        if (!t) add(path, `unknown test ${id}`);
+        else if (t.runtime !== "deployed" || t.result !== "pass") add(path, `${id} must have passed with runtime deployed`);
+      }
+    }
+    if (e.name === "production") {
+      for (const r of project.requirements.filter((r) => r.priority === "must")) {
+        if (!requirementDone(project, assessment, r.id)) add(path, `production is deployed but must ${r.id} is not done`);
+        for (const id of r.useCases) {
+          const u = useCases.get(id);
+          const deployed = (u?.acceptance ?? []).flatMap((a) => a.tests).some((t) => tests.get(t)?.runtime === "deployed" && tests.get(t)?.result === "pass");
+          if (u && !deployed) add(path, `production is deployed but must use case ${id} has no test that passed deployed`);
+        }
+      }
+    }
+  }
+  return problems;
+}
+
+function readJson(file: string): { value?: Json; problems: Problem[] } {
+  try {
+    return { value: JSON.parse(readFileSync(file, "utf8")) as Json, problems: [] };
+  } catch (error) {
+    return { problems: [{ path: "$", message: `not JSON: ${(error as Error).message}` }] };
+  }
+}
+
+export function validateFile(file: string): Problem[] {
+  const { value, problems: parse } = readJson(file);
+  if (!value) return parse;
+  const problems = checkSchema(value, SCHEMAS["assessment.schema.json"]);
   if (problems.length > 0) return problems;
-  return [...checkRules(parsed as unknown as Assessment), ...checkArchitecture(parsed as unknown as Assessment)];
+  return [...checkRules(value as unknown as Assessment), ...checkArchitecture(value as unknown as Assessment)];
+}
+
+/** Validates project.json against the assessment.json beside it. */
+export function validateProject(file: string): Problem[] {
+  const dir = dirname(file);
+  const { value, problems: parse } = readJson(file);
+  if (!value) return parse;
+  const problems = checkSchema(value, SCHEMAS["project.schema.json"]);
+  if (problems.length > 0) return problems;
+  const assessment = readJson(join(dir, "assessment.json"));
+  if (!assessment.value) return [{ path: "$", message: "project.json needs an assessment.json beside it" }];
+  if ((assessment.value as { id?: string }).id !== (value as { id?: string }).id) problems.push({ path: "$.id", message: "id differs from the assessment's" });
+  return [...problems, ...checkProject(value as unknown as Project, assessment.value as unknown as Assessment, dir)];
 }
 
 if (import.meta.main) {
-  const files = process.argv.slice(2);
-  const targets = files.length > 0
-    ? files
-    : readdirSync(join(ROOT, "cases"))
-        .map((name) => join(ROOT, "cases", name, "assessment.json"))
-        .filter((file) => existsSync(file));
+  const args = process.argv.slice(2);
+  const dirs = args.length > 0
+    ? args.map((arg) => (arg.endsWith(".json") ? dirname(resolve(arg)) : resolve(arg)))
+    : readdirSync(join(ROOT, "cases")).map((name) => join(ROOT, "cases", name));
+  const targets: Array<[string, (file: string) => Problem[]]> = [];
+  for (const dir of dirs) {
+    if (existsSync(join(dir, "assessment.json"))) targets.push([join(dir, "assessment.json"), validateFile]);
+    if (existsSync(join(dir, "project.json"))) targets.push([join(dir, "project.json"), validateProject]);
+  }
   let failed = 0;
-  for (const file of targets) {
-    const problems = validateFile(file);
-    if (problems.length === 0) console.log(`ok    ${file.replace(`${ROOT}/`, "")}`);
+  const show = (file: string) => file.replace(`${ROOT}/`, "");
+  for (const [file, check] of targets) {
+    const problems = check(file);
+    if (problems.length === 0) console.log(`ok    ${show(file)}`);
     else {
       failed += 1;
-      console.log(`FAIL  ${file.replace(`${ROOT}/`, "")}`);
+      console.log(`FAIL  ${show(file)}`);
       for (const problem of problems) console.log(`      ${problem.path}: ${problem.message}`);
     }
   }

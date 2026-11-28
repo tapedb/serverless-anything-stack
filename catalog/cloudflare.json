@@ -1,7 +1,7 @@
 {
   "catalog": "cloudflare",
   "checkedAt": "2026-11-26",
-  "note": "Read from developers.cloudflare.com on the date above. Limits and prices change; re-check before a cost model or a design that sits near a limit. Products renamed in 2026 are listed under their current name with the old one in formerly.",
+  "note": "Read from developers.cloudflare.com on the date above. Limits and prices change; re-check before a cost model or a design that sits near a limit. Products renamed in 2026 are listed under their current name with the old one in formerly. Entries with their own checkedAt were read on that date instead.",
   "entries": [
     {
       "id": "workers",
@@ -11,7 +11,9 @@
         "Paid: 128 MB memory per isolate, CPU up to 5 min per invocation (default 30 s), 10,000 subrequests per invocation by default (configurable up to 10M), 6 simultaneous outgoing connections per request.",
         "Free: 10 ms CPU, 50 subrequests."
       ],
-      "sources": ["https://developers.cloudflare.com/workers/platform/limits/"]
+      "sources": [
+        "https://developers.cloudflare.com/workers/platform/limits/"
+      ]
     },
     {
       "id": "durable-objects",
@@ -91,9 +93,15 @@
       "id": "r2",
       "name": "R2",
       "maturity": "GA",
-      "facts": ["Object storage without egress fees; not a query engine on its own."],
-      "sources": ["https://developers.cloudflare.com/r2/pricing/"],
-      "unverified": ["Per-operation prices were not re-read for this catalog."]
+      "facts": [
+        "Object storage without egress fees; not a query engine on its own."
+      ],
+      "sources": [
+        "https://developers.cloudflare.com/r2/pricing/"
+      ],
+      "unverified": [
+        "Per-operation prices were not re-read for this catalog."
+      ]
     },
     {
       "id": "d1",
@@ -103,30 +111,87 @@
         "Serverless SQLite; rows read and written priced as Durable Objects SQLite; 100 bound parameters and 100 KB per statement; read replicas.",
         "1,000 queries per Worker invocation on Paid."
       ],
-      "sources": ["https://developers.cloudflare.com/d1/platform/limits/"]
+      "sources": [
+        "https://developers.cloudflare.com/d1/platform/limits/"
+      ]
     },
     {
       "id": "kv",
       "name": "Workers KV",
       "maturity": "GA",
-      "facts": ["Eventually consistent; 1 write per second to the same key; 1,000 operations per invocation."],
-      "sources": ["https://developers.cloudflare.com/kv/platform/limits/"],
+      "facts": [
+        "Eventually consistent; 1 write per second to the same key; 1,000 operations per invocation."
+      ],
+      "sources": [
+        "https://developers.cloudflare.com/kv/platform/limits/"
+      ],
       "guidance": "Use directly for read-heavy public metadata or caches when justified; not a transactional store."
     },
     {
       "id": "vectorize",
       "name": "Vectorize",
       "maturity": "GA",
-      "facts": ["Paid plan only."],
-      "sources": ["https://developers.cloudflare.com/workers/platform/pricing/#vectorize"],
-      "unverified": ["Index limits and pricing were not re-read for this catalog."]
+      "facts": [
+        "Paid plan only."
+      ],
+      "sources": [
+        "https://developers.cloudflare.com/workers/platform/pricing/#vectorize"
+      ],
+      "unverified": [
+        "Index limits and pricing were not re-read for this catalog."
+      ]
     },
     {
       "id": "workers-logs",
       "name": "Workers Logs",
       "maturity": "GA",
-      "facts": ["7 days retention; 5 billion logs per account per day before 1% sampling; 256 KB per log."],
-      "sources": ["https://developers.cloudflare.com/workers/observability/logs/workers-logs/"]
+      "facts": [
+        "7 days retention; 5 billion logs per account per day before 1% sampling; 256 KB per log."
+      ],
+      "sources": [
+        "https://developers.cloudflare.com/workers/observability/logs/workers-logs/"
+      ]
+    },
+    {
+      "id": "artifacts",
+      "name": "Artifacts",
+      "maturity": "open beta (2026-10-01)",
+      "facts": [
+        "Git-compatible versioned storage: repositories managed through a Workers binding or REST API (create, import, fork, delete, repo-scoped tokens, file reads by path, commit history) and read and written by any Git client over HTTPS.",
+        "Event subscriptions through Queues: repo.created, repo.deleted, repo.forked, repo.imported, and per-repo pushed, cloned, fetched.",
+        "Workers Builds can build and deploy from an Artifacts repo; pushes to other branches create Worker Previews. CI Workflows can run on push events.",
+        "Limits: 1 GB storage per repo for repos created on or after 2026-09-29 (10 GB before), 1 TB per account (raisable), 2,000 Git requests per 10 s per repo, 2,000 control-plane requests per 10 s per namespace, unlimited repos and namespaces. Namespaces can be pinned to the EU or US.",
+        "Workers Paid only. Billing from 2026-11-19: 10,000 operations per month included then $0.15 per 1,000; 1 GB-mo included then $0.50 per GB-mo. A per-repository charge (100,000 included, then $0.01 each) is announced but not yet billed.",
+        "Local development: wrangler dev, the Vite plugin and the Workers Vitest integration use a local simulator by default; needs Git 2.32+."
+      ],
+      "sources": [
+        "https://developers.cloudflare.com/artifacts/",
+        "https://developers.cloudflare.com/artifacts/concepts/repositories/",
+        "https://developers.cloudflare.com/artifacts/platform/limits/",
+        "https://developers.cloudflare.com/artifacts/platform/pricing/",
+        "https://developers.cloudflare.com/changelog/post/2026-10-01-artifacts-open-beta/",
+        "https://developers.cloudflare.com/workers/ci-cd/builds/git-integration/artifacts-integration/"
+      ],
+      "checkedAt": "2026-11-28"
+    },
+    {
+      "id": "previews",
+      "name": "Worker Previews",
+      "maturity": "GA",
+      "facts": [
+        "The recommended way to test a branch before production: npx wrangler preview creates or updates a Preview with its own URL under the same Worker.",
+        "Preview settings live in a previews block in the Wrangler file (required, may be empty); point preview bindings at staging or test resources. Durable Objects and Containers get isolated resources per Preview.",
+        "Version URLs (wrangler versions upload) run one uploaded version against production resources; use them only to inspect a version before deploying it, not for branch testing.",
+        "Wrangler environments (wrangler deploy --env <name>) create separately named, persistent Workers: the shape for a long-lived staging.",
+        "Workers Builds runs npx wrangler preview for non-production branches by default and can post the Preview URL on the pull request."
+      ],
+      "sources": [
+        "https://developers.cloudflare.com/workers/previews/compare-workflows/",
+        "https://developers.cloudflare.com/workers/previews/configuration/",
+        "https://developers.cloudflare.com/workers/versions-and-deployments/version-urls/",
+        "https://developers.cloudflare.com/workers/ci-cd/builds/configuration/"
+      ],
+      "checkedAt": "2026-11-28"
     }
   ],
   "toCheck": [

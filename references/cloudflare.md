@@ -1,7 +1,7 @@
 # Cloudflare primitives: choosing
 
 Limits, prices and sources are in `catalog/cloudflare.json` (checked
-2026-11-26). Re-check before relying on a number.
+2026-11-26; Artifacts and Previews 2026-11-28). Re-check before relying on a number.
 
 | workload | first choice | notes |
 | --- | --- | --- |
@@ -12,11 +12,14 @@ Limits, prices and sources are in `catalog/cloudflare.json` (checked
 | multi-step work, timers, waiting for events | Workflows | durable steps, sleeps, `waitForEvent`; per-instance step limits |
 | schedules | Cron Triggers | scan or enqueue; keep the handler short |
 | blobs, archives, attachments | R2 | not a query engine |
+| Git repositories, versioned file trees | Artifacts | open beta, Workers Paid; Git over HTTPS, 1 GB per repo for new repos; push events through Queues |
 | events, logs, analytics at volume | Basin: Pipelines into R2 Iceberg tables, Basin SQL | GA since 2026-10-01; billed per TB scanned; measure query latency before promising interactive views |
 | sampled metrics | Workers Analytics Engine | sampled, 3 months retention, 250 data points per invocation: not for exact event exploration |
 | key-value lookups at the edge | KV | eventually consistent; only where a cache is justified and the system works without it |
 | similarity search | Vectorize (directly, or through TapeDB) | eventually consistent |
 | operational logs | Workers Logs | for diagnosis, not product data |
+| branch and pull request environments | Worker Previews (`wrangler preview`) | isolated Durable Objects per Preview; not Version URLs, which use production resources |
+| long-lived staging | Wrangler environment (`wrangler deploy --env staging`) | a separately named Worker with its own bindings |
 
 Not yet assessed here: K2 durable logs (a candidate ingestion buffer) and the
 Email Service binding. Mark designs that depend on them `unverified`.

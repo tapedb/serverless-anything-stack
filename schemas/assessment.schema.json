@@ -386,7 +386,53 @@
             "items": {
               "type": "string"
             }
+          },
+          "level": {
+            "enum": [
+              "unit",
+              "integration",
+              "e2e",
+              "load",
+              "security",
+              "smoke"
+            ],
+            "description": "Where the test sits in the pyramid. e2e drives the application the way a user does."
           }
+        }
+      }
+    },
+    "verdict": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "recommendation",
+        "summary"
+      ],
+      "description": "The feasibility answer handed to the owner before any engineering starts.",
+      "properties": {
+        "recommendation": {
+          "enum": [
+            "go",
+            "go-with-exclusions",
+            "no-go"
+          ]
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Two to five sentences: what can be built serverless, what cannot, and what that costs the user."
+        },
+        "excluded": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "What will not be built, and the nearest honest alternative for each."
+        },
+        "alternative": {
+          "type": "string",
+          "description": "For no-go: the nearest honest answer (a container, a VPS, a managed service)."
         }
       }
     }

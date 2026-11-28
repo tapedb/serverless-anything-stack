@@ -1,30 +1,95 @@
 ---
-name: serverless-anything
-description: Assess a self-hosted application (any repository) and design or build an evidence-based Cloudflare-native alternative with no VPS, reusing TapeDB and Cloudflare primitives where their guarantees fit. Use when asked to port, adapt, replace or assess self-hosted software for Cloudflare Workers.
+name: serverless-anything-stack
+description: Build a serverless, Cloudflare-native version of any self-hosted app or product idea ("a GitHub equivalent to host my code", a repo URL) end to end. Assesses feasibility and hands over a report, then on approval does the engineering: MoSCoW, use cases, diagrams, build, tests, e2e, deployments. Use to port, rebuild, replace or assess self-hosted software for Cloudflare Workers.
 ---
 
-# Serverless Anything
+# Serverless Anything Stack
 
-Turn "can this run on Cloudflare without a server?" into a checked answer: a
-pinned audit of the upstream, a capability matrix in which every claim has
-evidence and a test, an architecture that reuses what exists, and, when asked,
-working code with tests. A service mapping is not feature parity; this skill
-never says otherwise.
+The owner says what they want, for example
+`/serverless-anything-stack i want to build a github equivalent to host my codebases`.
+This skill takes it from there to a running application on Cloudflare with no
+server: it finds out whether it can be done, says so in a report, and once
+the owner approves, engineers it: requirements by MoSCoW, use cases,
+diagrams, code, unit, integration and e2e tests, preview, staging and
+production deployments, a runbook.
 
-Paths below are relative to this file.
+Evidence rules hold throughout. A capability is `verified` only when a test
+passed, a must is done only when its acceptance tests passed, an environment
+is deployed only when e2e tests ran against it. A service mapping is not
+feature parity; this skill never says otherwise.
+
+Paths below are relative to this file. `<skill>` means this folder.
+
+## Phases and gates
+
+| phase | output | gate |
+| --- | --- | --- |
+| 0 Intake | goal in the owner's words, reference upstreams pinned | none |
+| 1 Assess | `assessment.json` with capabilities, evidence, verdict | none |
+| 2 Report | `report.md` + draft MoSCoW, handed to the owner | **Gate 1: owner approves scope** |
+| 3 Requirements | `project.json`: actors, MoSCoW requirements, use cases with acceptance tests | none |
+| 4 Design | diagrams, ADRs, API contract, data model, failure design, cost | none |
+| 5 Plan | milestones, walking skeleton first | none |
+| 6 Build | the application, in slices, tests first | **Gate 2: Cloudflare account and go-ahead before the first deploy** |
+| 7 Test | unit, integration (workerd), e2e (deployed), load, security | none |
+| 8 Deploy | preview per branch, staging, production | **Gate 3: owner go-ahead for production** |
+| 9 Handover | `delivery.md`, README, runbook, open work | none |
+
+Run phases 0 to 2 without stopping: read, clone, research and write freely.
+Stop at Gate 1 and present the report. If nobody answers (a scheduled or
+unattended run), the report is the deliverable; do not start engineering.
+After Gate 1, run phases 3 to 7 without asking again except for the gates
+and for decisions that cannot be undone. Small product choices are yours:
+make them, record them as decisions, list them in the handover.
+
+`bun <skill>/scripts/validate.ts <dir>` enforces the gates: it refuses
+milestones under way or environments deployed without an approval, a done
+milestone whose tests have not passed, a staging or production deploy without
+`approvedBy` and deployed e2e tests, and production while a must is not done.
+Run it after every phase.
+
+## Where things live
+
+The application gets its own repository, never this one. Create it (on
+GitHub or wherever the owner keeps code) only with the owner's go-ahead,
+which Gate 1 can include; until then work in a local folder.
+
+```
+<app>/
+  docs/serverless/
+    assessment.json  project.json        # the data; the validator reads these
+    report.md        delivery.md         # generated: bun <skill>/scripts/report.ts docs/serverless
+    diagrams/*.md                        # one mermaid block per file
+    adr/NNNN-*.md                        # decisions about the application
+  src/  (Worker)   app/  (UI, if any)   tapedb.schema.ts   wrangler.jsonc
+  test/unit/   test/integration/   e2e/
+  .github/workflows/ci.yml              # from templates/ci.yml
+  README.md   RUNBOOK.md
+```
 
 ## Before starting
 
-1. Read `references/methodology.md` (the procedure and the status rules) and
-   skim `catalog/tapedb.json` and `catalog/cloudflare.json` (what each platform
-   guarantees, with sources and dates).
-2. Re-check anything in the catalogs older than the task needs: a Cloudflare
-   limit, a price, a TapeDB release. Look at the registry and the docs, not at
-   memory. Update the catalog entry and its `checkedAt` when you do.
-3. If the user names an upstream repository, pin it: clone it and record the
-   commit. Everything after this refers to that commit.
+1. Read `references/methodology.md` (evidence and statuses), then skim
+   `catalog/tapedb.json` and `catalog/cloudflare.json`.
+2. Re-check anything in the catalogs the task depends on and older than it
+   can bear: a limit, a price, a beta, a TapeDB release. Use the registry and
+   the docs, not memory. Update the entry and its `checkedAt`.
+3. Read `references/engineering.md` before phase 3, `references/testing.md`
+   before phase 6 and `references/deployment.md` before the first deploy.
 
-## Procedure
+## Phase 0: Intake
+
+- Write the goal down as the owner said it, plus what done means to them.
+- If they named a repository, pin it (clone, record the commit).
+- If they described a product ("a GitHub equivalent"), pick one or two
+  open-source reference upstreams that do it (for GitHub: Forgejo or Gitea;
+  for Notion: AppFlowy or AFFiNE) and pin those. They are the source of the
+  feature inventory and of the evidence, not code to copy. Say which you
+  picked and why in the report.
+- Ask nothing yet unless the request cannot be read at all. Questions about
+  scale, users and must-haves go into the report as assumptions to confirm.
+
+## Phase 1: Assess
 
 1. **Audit the upstream at the pinned revision.** Manifests, lockfiles,
    process files (Procfile, compose, Helm), schema and migrations, routes, jobs
@@ -39,21 +104,69 @@ Paths below are relative to this file.
    rewrite, or infeasible. A JVM, Rails or Django server is not a Worker; say
    so and choose a rewrite or a non-serverless answer.
 4. **Map each capability** to a candidate, preferring existing high-level
-   primitives (TapeDB, then Cloudflare products) over new code, and recipes in
-   `recipes/` over invention. Record semantic gaps: what the candidate does
-   differently, not only what it lacks.
-5. **Write the assessment** as `cases/<name>/assessment.json` against
-   `schemas/assessment.schema.json`, and a short `report.md` beside it.
-6. **Validate:** `bun run check`. The validator refuses `verified` without
-   upstream evidence, dated candidate evidence and a passing test; refuses
-   `partial` without gaps; refuses a second socket service next to TapeDB live
-   queries, a second outbox next to TapeDB webhooks, mandatory KV, and
-   ingestion workloads placed in TapeDB, unless an `architecture.exceptions`
-   entry gives the reason and evidence.
-7. **If asked to implement,** build the smallest fixture that proves a claim
-   (see `examples/`), run it, and only then raise the capability's status.
-   Label each result with where it ran: `local`, `workerd-local`, `deployed`
-   or `manual`.
+   primitives (TapeDB, then Cloudflare products such as Artifacts for Git
+   repositories) over new code, and recipes in `recipes/` over invention.
+   Record semantic gaps: what the candidate does differently, not only what
+   it lacks.
+5. **Prove the risky claims early.** For each capability the verdict hinges
+   on, build the smallest fixture that shows it (see `examples/`) and run it.
+   A verdict resting on untested beta features says so.
+6. **Write the verdict** in `assessment.json`: `go`, `go-with-exclusions`
+   (list each exclusion and its nearest alternative) or `no-go` (with the
+   nearest honest alternative: a container, a VPS, a managed service).
+7. **Validate:** `bun <skill>/scripts/validate.ts docs/serverless`.
+
+## Phase 2: Report (Gate 1)
+
+Generate `report.md` (`bun <skill>/scripts/report.ts docs/serverless`) and
+hand the owner a short summary alongside it:
+
+- the verdict in one paragraph: what will work serverless, what will not,
+  what that costs them;
+- a draft MoSCoW (musts, shoulds, coulds, won'ts), each linked to the
+  capabilities it needs, with their statuses;
+- the assumptions to confirm (users, scale, data size, must-haves), the
+  monthly cost at the stated volumes, and the beta or unverified pieces;
+- what they approve: the scope, the repository to create, and whether you may
+  deploy previews to their Cloudflare account.
+
+Record the answer in `project.json` `approval` (who, when, notes on scope
+changes). No-go stops here with the alternative.
+
+## Phases 3 to 9: Engineering
+
+Follow `references/engineering.md`. In short:
+
+3. **Requirements.** `project.json` against `schemas/project.schema.json`:
+   actors; requirements with MoSCoW priority, rationale and the capabilities
+   they depend on; use cases with preconditions, main and alternate flows and
+   acceptance criteria, each criterion tied to test ids added to
+   `assessment.json` as `not-run` with a `level`. A must cannot depend on an
+   unsupported capability. Won'ts say why.
+4. **Design.** Diagrams in mermaid (`templates/diagrams.md`): context,
+   container, data model, deployment, a sequence diagram for every must use
+   case, a state diagram for every entity with a lifecycle. ADRs for each
+   real choice. API contract, the failure design checklist from
+   `references/methodology.md`, cost from `references/costing.md`.
+5. **Plan.** Milestones: M1 is a walking skeleton (repo, CI, one must use
+   case end to end, deployed to a preview with an e2e test). Then the rest of
+   the musts, then shoulds, then coulds.
+6. **Build** one use case at a time: write its tests first, implement, run
+   them, raise statuses only on a pass, commit. Reuse primitives; obey the
+   rules below.
+7. **Test** per `references/testing.md`: unit, integration in workerd,
+   e2e with Playwright against a deployed preview, load where a
+   non-functional requirement states a number, security checks.
+8. **Deploy** per `references/deployment.md`: CI on every push, a Preview
+   per branch, staging as a Wrangler environment, production only after
+   Gate 3. Record every environment in `project.json`.
+9. **Handover.** `delivery.md` (generated: MoSCoW with done flags,
+   traceability from requirement to use case to test, milestones,
+   environments, open work), README, `RUNBOOK.md` (`templates/runbook.md`),
+   and a short message: what runs where, what is done, what is not.
+
+Validate and regenerate reports at the end of every phase and before every
+commit. Reports are generated; do not edit them by hand.
 
 ## Rules
 
@@ -67,19 +180,21 @@ Paths below are relative to this file.
   system that a chosen primitive already provides.
 - Do not put telemetry, logs or raw events into TapeDB workspaces; one
   workspace has one writer.
-- Domain protocols (SAML, LDAP, Sentry envelopes, WhatsApp, email providers)
-  stay in application code or external services, not in the database.
+- Domain protocols (SAML, LDAP, Sentry envelopes, WhatsApp, email providers,
+  Git) stay in application code, a Cloudflare product built for them
+  (Artifacts for Git) or external services, not in the database.
 - Costs come from current official pricing with stated volumes, or are marked
   UNPRICED (`references/costing.md`).
-- Do not deploy to production, publish packages or send messages without the
-  owner's explicit go-ahead. Report blockers instead of working around them.
+- Gates are the owner's. Never create repositories, deploy to their account,
+  deploy to production, publish packages, buy plans or send messages without
+  their explicit go-ahead. Report blockers instead of working around them.
 
-## Output
+## Worked examples
 
-For an assessment: the validated `assessment.json`, a `report.md` (approach,
-matrix summary, gaps, risks, decisions, what was tested where, what was not),
-and a backlog of the tests still marked `not-run`. For an implementation: the
-code, its tests, and the assessment updated with the results.
-
-The three cases in `cases/` (Keycloak, Chatwoot, GlitchTip) are worked
-examples; read one before writing a new assessment.
+- `cases/sanity/`: a full run through phase 7: assessment with a verdict,
+  `project.json` with MoSCoW, use cases, diagrams and milestones, and the
+  generated `report.md` and `delivery.md`. Read it before phase 3.
+- `cases/keycloak/`, `cases/chatwoot/`, `cases/glitchtip/`: assessments
+  only; read one before phase 1.
+- `examples/`: fixtures (`inbox`, `ingest`, `cms`) showing how tests run
+  under `tapedb dev` and against a deployment.

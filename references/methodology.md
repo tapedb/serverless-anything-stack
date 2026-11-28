@@ -48,6 +48,18 @@ found.
 - **Infeasible**: say what blocks it (a JVM, raw TCP listeners, GPU, kernel
   features) and what the nearest honest alternative is.
 
+## Verdict
+
+The answer handed to the owner at Gate 1, in `assessment.json` `verdict`:
+
+| recommendation | means | the validator requires |
+| --- | --- | --- |
+| `go` | everything the owner needs can be built serverless | no `excluded` entries |
+| `go-with-exclusions` | the core can; some parts cannot or will not be built | `excluded`, each with its nearest alternative |
+| `no-go` | the core cannot run without a server | `alternative`; the approach is `infeasible` or another approach that still cannot meet the goal |
+
+An `infeasible` approach is always `no-go`. An `undecided` approach has no verdict.
+
 ## Failure design checklist
 
 For each asynchronous or cross-service path record: what acknowledges, what is
@@ -59,7 +71,9 @@ Queues and R2.
 
 ## Tests
 
-Name acceptance tests before building, with the runtime they will run in. A
+Name acceptance tests before building, with the runtime they will run in
+and their `level` (unit, integration, e2e, load, security, smoke; see
+`testing.md`). A
 test that has not run is `result: not-run`; the list of those is the backlog.
 Fixtures live in `examples/` and run with `npm test` inside each; they use the
 published packages, never source checkouts.

@@ -7,6 +7,17 @@ Generated from `assessment.json` by `bun scripts/report.ts`. Do not edit by hand
 - **Approach:** compatible-rewrite
 - **Capabilities:** 2 verified, 16 partial, 6 unverified, 1 not-applicable
 
+## Verdict
+
+**Go, with exclusions.** A CMS with code-defined content types, drafts, atomic publish and releases, roles, live co-editing with presence, revisions, assets and cached delivery runs on TapeDB and Cloudflare in the customer's own account, with no server. It is a compatible rewrite, not a port of Content Lake: no GROQ, whole-attribute writes with field locks instead of path patches, and a new Studio. Image transforms need the account on an Images plan; scheduling and search are designed but untested.
+
+Not built:
+
+- Hosted add-ons (Canvas, Media Library, content variants, agent features): not part of the open-source product; no equivalent planned.
+- Comments and tasks: deferred past v1; buildable later as TapeDB models with live queries.
+- Visual editing overlays: deferred past v1; v1 previews drafts only.
+- GROQ: front ends use the typed delivery SDK; queries written for Sanity are rewritten.
+
 ## Architecture
 
 A compatible rewrite: a CMS layer on TapeDB, not a port of Content Lake. One TapeDB workspace per dataset holds documents, versions, releases, revisions and asset records with role and row rules; the Studio uses live queries, presence and the client outbox; assets are TapeDB files on R2 with transforms by the Images binding; published content is written to R2 and served behind the Workers Cache API by a delivery Worker refreshed from TapeDB webhooks; schedules run on Workflows. Everything deploys into the customer's own Cloudflare account.
