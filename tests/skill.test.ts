@@ -27,5 +27,6 @@ test("SKILL.md frontmatter is strict YAML with name and description", () => {
   expect(fields.name).toBe("serverless-anything-stack");
   expect(fields.name).toMatch(/^[a-z0-9-]{1,64}$/);
   expect(fields.description.length).toBeGreaterThan(0);
-  expect(fields.description.length <= 1024).toBe(true);
+  // Claude's skill upload allows 200 characters; the open format allows 1024.
+  expect(fields.description.length <= 200).toBe(true);
 });

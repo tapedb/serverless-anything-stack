@@ -7,7 +7,8 @@
     "report": "node scripts/report.ts",
     "test": "node --test tests/*.test.ts",
     "typecheck": "tsc -p .",
-    "check": "npm run typecheck && npm test"
+    "check": "npm run typecheck && npm test",
+    "package": "node scripts/package.ts"
   },
   "engines": {
     "node": ">=22.18"

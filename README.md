@@ -79,6 +79,13 @@ Or clone it into the folder your agent reads:
 git clone https://github.com/tapedb/serverless-anything-stack .agents/skills/serverless-anything-stack
 ```
 
+For the Claude apps (claude.ai, desktop, mobile), upload the skill as a
+ZIP: build it with `npm ci && npm run package`, then in Claude go to
+Customize > Skills, click "+", then "Create skill", and upload the ZIP. It
+then appears in your Skills list and syncs to Claude Code when you sign in
+with that account. The ZIP holds the skill folder at its root and leaves out
+the tests and dev dependencies.
+
 For an agent without skill support, add one line to its instructions file
 (`AGENTS.md`, `GEMINI.md`, `.cursor/rules`, ...):
 
@@ -103,7 +110,8 @@ Checking this repository needs its pinned dev dependencies:
 npm ci
 npm run check          # strict typecheck, then tests: validator, reports, catalogs,
                        # SKILL.md frontmatter as strict YAML, every template diagram
-                       # parsed by mermaid, the CI template's jobs
+                       # parsed by mermaid, the CI template's jobs, the packaged ZIP
+npm run package        # dist/serverless-anything-stack.zip for upload
 
 # against an application's own docs/serverless/ directory
 node scripts/validate.ts ../my-app/docs/serverless
