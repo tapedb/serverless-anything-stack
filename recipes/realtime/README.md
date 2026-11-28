@@ -21,6 +21,6 @@ refuses it unless an exception records why (for example, binary media frames).
   timestamp, not presence.
 - Each live query re-runs on matching writes; count that in reads and cost.
 
-**Tested by:** `examples/inbox` (a live count updated by another client) and
-TapeDB's own e2e scenarios (`live-order`, `relation-live`, `presence`,
+**Tested by:** TapeDB's own e2e scenarios (`live-order`, `relation-live`, `presence`,
 `broadcast`), which passed on deployed staging.
+In the application, test a live view updated by another client.

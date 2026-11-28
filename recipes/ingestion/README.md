@@ -22,5 +22,6 @@ recipe). Raw events never go into a workspace.
   tenant's burst should not starve others (one queue per tier, or per-tenant
   limits at the edge).
 
-**Tested by:** `examples/ingest`, 5 tests in workerd with local Queues. Not
-yet: deployed Queues, burst load, late events, privacy redaction.
+**Test in the application:** intake to a queue, an idempotent consumer, a
+dead-lettered poison message, then deployed Queues, burst load, late events
+and privacy redaction.

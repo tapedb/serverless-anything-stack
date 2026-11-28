@@ -42,7 +42,6 @@ in it that it is not for.
 | `scripts/validate.ts` | schema plus rule validation: evidence, architecture and delivery gates |
 | `scripts/report.ts` | renders `report.md` from an assessment and `delivery.md` from a project |
 | `recipes/` | transactional, realtime, identity, async, ingestion, analytics patterns |
-| `examples/` | the recipe fixtures: `inbox` (transactional and realtime), `ingest` (ingestion and async) |
 | `docs/adr/` | decisions about this repository |
 | `LICENSES.md` | license review |
 
@@ -72,8 +71,7 @@ the same way; the skill refers to its files by relative path.
 
 ## Check and test
 
-Requires [Bun](https://bun.sh) 1.4 or newer; the fixtures also need Node 22.18+
-and npm.
+Requires [Bun](https://bun.sh) 1.4 or newer.
 
 ```bash
 bun run check          # unit tests of the validator, reports and catalogs
@@ -82,17 +80,14 @@ bun run check          # unit tests of the validator, reports and catalogs
 bun scripts/validate.ts ../my-app/docs/serverless
 bun scripts/report.ts ../my-app/docs/serverless          # writes report.md, delivery.md
 bun scripts/report.ts --check ../my-app/docs/serverless  # fails if they are stale
-bun run test:fixtures  # install and run every fixture (starts tapedb dev for each)
 ```
-
-Each fixture also runs alone: `cd examples/inbox && npm ci && npm test`. A
-fixture writes fresh local secrets to `.dev.vars` on first run.
 
 ## Limitations
 
-- The recipe fixtures run locally (workerd under `tapedb dev`, local
-  Queues); deployed results the recipes cite come from TapeDB's staging runs.
-- The recipes do not yet test Basin SQL latency, deployed Queues behaviour,
+- This repository runs no applications. Deployed results the recipes cite
+  come from TapeDB's own staging runs; everything else is tested in the
+  application the skill builds.
+- The recipes do not test Basin SQL latency, deployed Queues behaviour,
   burst load, provider delivery with a failing provider, OIDC conformance or
   key rotation; each recipe says what it has not tested.
 - The architecture rules match on component names; review still matters.

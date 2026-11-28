@@ -119,7 +119,8 @@ which Gate 1 can include; until then work in a local folder.
    it lacks.
 5. **Prove the risky claims early.** For each capability the verdict hinges
    on, build the smallest fixture that shows it in the application's
-   `spikes/` (the fixtures in `<skill>/examples/` show the pattern) and run it.
+   `spikes/` and run it: its own npm project on the published packages,
+   started under `tapedb dev` or `wrangler dev` by its tests (ADR 0003).
    A verdict resting on untested beta features says so.
 6. **Write the verdict** in `assessment.json`: `go`, `go-with-exclusions`
    (list each exclusion and its nearest alternative) or `no-go` (with the
@@ -204,5 +205,3 @@ commit. Reports are generated; do not edit them by hand.
 - `schemas/`: what `assessment.json` and `project.json` hold.
 - `tests/shapes.ts` and `tests/project.test.ts`: the smallest valid
   assessment and project.
-- `examples/inbox`, `examples/ingest`: the stack's own recipe fixtures, showing
-  how a fixture runs under `tapedb dev` on published packages.

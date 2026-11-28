@@ -23,6 +23,6 @@ nothing else.
 - TapeDB's `$webhooks()` and `$webhookRetry()` show and move a stuck
   endpoint; a revived event keeps its order position.
 
-**Tested by:** `examples/ingest` (per-message acks, a poison message retried
-and dead-lettered without holding back its sibling, a redelivery counted
-once). A provider-delivery fixture with a failing provider is still to do.
+**Test in the application:** per-message acks, a poison message retried and
+dead-lettered without holding back its sibling, a redelivery counted once,
+and delivery to a provider that fails.

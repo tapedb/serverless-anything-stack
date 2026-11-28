@@ -9,7 +9,7 @@ has not run is `not-run`; the list of those is the backlog in `delivery.md`.
 | level | what | runtime | tools |
 | --- | --- | --- | --- |
 | `unit` | pure functions: validation, permission checks, parsers, formatters | `local` | `bun test` or Vitest |
-| `integration` | the Worker with its real bindings: TapeDB workspaces, Durable Objects, Queues, R2, Artifacts | `workerd-local` | `tapedb dev` (as in `examples/`), or the Workers Vitest integration (`@cloudflare/vitest-pool-workers`), or `wrangler dev` |
+| `integration` | the Worker with its real bindings: TapeDB workspaces, Durable Objects, Queues, R2, Artifacts | `workerd-local` | `tapedb dev`, or the Workers Vitest integration (`@cloudflare/vitest-pool-workers`), or `wrangler dev` |
 | `e2e` | the application as a user or client drives it: browser flows, Git clone and push, API calls with real tokens | `deployed` (a Preview or staging) | Playwright for the UI (`templates/playwright.config.ts`), the real client for protocols (`git`, an SDK) |
 | `load` | a non-functional requirement with a number in it | `deployed` | k6, autocannon, or a script; state the volume and where it ran from |
 | `security` | authz refusals, tenancy isolation, secrets not exposed, dependency audit | `workerd-local` and `deployed` | tests that expect 401/403/404, `npm audit`, gitleaks |

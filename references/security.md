@@ -3,9 +3,9 @@
 ## In every assessment
 
 - **Tenancy:** what is the isolation boundary, and which test shows one tenant
-  cannot read another's data? (In TapeDB, a claim names one workspace; the
-  inbox fixture checks that a claim for one account is refused by another's
-  workspace with 403 `wrong_workspace`.)
+  cannot read another's data? (In TapeDB, a claim names one workspace; test
+  that a claim for one tenant is refused by another's workspace with 403
+  `wrong_workspace`.)
 - **Identity:** who issues identities, which protocol, which tests show
   single-use tokens stay single-use under a race, revocation works, and keys
   rotate. An identity provider ships only after a conformance run and an
@@ -16,8 +16,8 @@
 - **Personal data:** which fields are personal, how erasure works (TapeDB
   personal fields and workspace erasure), and what leaves the platform
   (webhook bodies, provider sends, analytics tables).
-- **Secrets:** Worker secrets, never `vars`. Local fixtures generate fresh
-  `.dev.vars`; nothing secret is committed.
+- **Secrets:** Worker secrets, never `vars`. Spikes and local runs generate
+  fresh `.dev.vars`; nothing secret is committed.
 - **Inbound webhooks:** verify provider signatures before writing anything.
 
 ## Licensing

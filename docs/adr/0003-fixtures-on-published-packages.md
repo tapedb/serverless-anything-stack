@@ -10,7 +10,7 @@ that a checkout and the published package can differ.
 
 ## Decision
 
-Each fixture in `examples/` is its own npm project pinned to an exact
+Each fixture (in an application's `spikes/` or tests) is its own npm project pinned to an exact
 published `@tapedb/tapedb` and `@tapedb/cli`, generates its own local secrets,
 starts `tapedb dev` (workerd, real WorkspaceRooms, local Queues) from its
 tests, and talks to it through the public client or the admin HTTP API.

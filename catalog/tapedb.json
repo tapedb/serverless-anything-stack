@@ -338,7 +338,7 @@
       "id": "admin-api-no-defaults",
       "checkedAt": "2026-11-26",
       "evidence": [
-        "examples/ingest"
+        "POST /v1/transact with a defaulted field omitted, against tapedb dev on @tapedb/tapedb 0.4.1 (2026-11-26)"
       ],
       "text": "POST /v1/transact applies wire ops as given: schema defaults are filled by the typed client, so an insert that omits a defaulted field is refused with invalid_op (\"requires attribute\"). API.md does not say so."
     },

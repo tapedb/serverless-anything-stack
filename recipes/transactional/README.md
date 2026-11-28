@@ -15,13 +15,13 @@ engine and cannot race.
 
 - Derive what can drift. A stored counter updated by read-modify-write loses
   increments under concurrent writers; a live `count` or `aggregate` cannot.
-  The inbox fixture keeps unread as a count of messages after `lastReadAt`.
+  For example, unread as a count of messages after `lastReadAt`.
 - Key idempotent writes by the id of what caused them (a message id, a
   provider event id), so a redelivery rewrites the same row.
 - Keep a transaction inside one workspace. If a design needs atomicity across
   tenants, the boundary is wrong, or it needs a saga with reconciliation.
 - Spell out defaulted fields in admin-API inserts (0.4.2 does not fill them).
 
-**Tested by:** `examples/inbox` (conversations, messages, unread, 30
-concurrent sends, isolation) and `examples/ingest` (idempotent upserts from a
-consumer).
+**Test in the application:** concurrent writes to one row, a refused write
+from another tenant (403 `wrong_workspace`), and an idempotent upsert
+replayed twice.
