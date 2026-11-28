@@ -95,7 +95,13 @@ type Assessment = {
   evidence: Array<{ id: string; kind: string; checkedAt?: string }>;
   features: Array<{ id: string; evidence: string[]; capabilities?: string[] }>;
   dependencies: Array<{ name: string; evidence: string[] }>;
+  architecture: {
+    summary: string;
+    components: Array<{ name: string; primitive: string; responsibility: string; optional?: boolean }>;
+    exceptions?: Array<{ rule: string; reason: string; evidence: string[] }>;
+  };
   capabilities: Array<{
+    workload?: string;
     id: string;
     status: string;
     decision: string;
@@ -213,10 +219,8 @@ export function checkRules(assessment: Assessment): Problem[] {
  */
 export function checkArchitecture(assessment: Assessment): Problem[] {
   const problems: Problem[] = [];
-  const architecture = assessment.architecture as Assessment["architecture"] & {
-    exceptions?: Array<{ rule: string; reason: string; evidence: string[] }>;
-  };
-  const components = architecture.components as Array<{ name: string; primitive: string; responsibility: string; optional?: boolean }>;
+  const architecture = assessment.architecture;
+  const components = architecture.components;
   const waived = new Set((architecture.exceptions ?? []).map((e) => e.rule));
   const evidence = new Set(assessment.evidence.map((e) => e.id));
   for (const e of architecture.exceptions ?? []) {

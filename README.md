@@ -95,10 +95,15 @@ relative path.
 
 ## Check and test
 
-Requires Node.js 22.18 or newer (TypeScript runs directly; no install step). Bun works too.
+Requires Node.js 22.18 or newer. The validator and report generator have no
+dependencies and run straight from the skill folder (Bun works too).
+Checking this repository needs its pinned dev dependencies:
 
 ```bash
-npm run check          # unit tests of the validator, reports and catalogs
+npm ci
+npm run check          # strict typecheck, then tests: validator, reports, catalogs,
+                       # SKILL.md frontmatter as strict YAML, every template diagram
+                       # parsed by mermaid, the CI template's jobs
 
 # against an application's own docs/serverless/ directory
 node scripts/validate.ts ../my-app/docs/serverless

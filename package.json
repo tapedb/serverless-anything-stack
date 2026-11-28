@@ -6,9 +6,19 @@
     "validate": "node scripts/validate.ts",
     "report": "node scripts/report.ts",
     "test": "node --test tests/*.test.ts",
-    "check": "npm test"
+    "typecheck": "tsc -p .",
+    "check": "npm run typecheck && npm test"
   },
   "engines": {
     "node": ">=22.18"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.65.1",
+    "@types/jsdom": "21.1.7",
+    "@types/node": "22.20.7",
+    "jsdom": "25.0.1",
+    "mermaid": "11.12.1",
+    "typescript": "5.9.3",
+    "yaml": "2.8.1"
   }
 }

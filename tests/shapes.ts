@@ -27,7 +27,7 @@ function minimal() {
         candidate: "TapeDB workspace transactions",
         candidateEvidence: ["td.tx"],
         status: "verified",
-        gaps: [],
+        gaps: [] as string[],
         owner: "tapedb",
         acceptanceTests: ["t.tx"],
         decision: "reuse",
