@@ -1,6 +1,6 @@
 ---
 name: serverless-anything-stack
-description: "Build a serverless, Cloudflare-native version of any self-hosted app or product idea (a GitHub equivalent to host my code, or a repo URL) end to end. Assesses feasibility and hands over a report, then on approval does the engineering: MoSCoW, use cases, diagrams, build, tests, e2e, deployments. Use to port, rebuild, replace or assess self-hosted software for Cloudflare Workers."
+description: Build a serverless, Cloudflare-native version of any self-hosted app or product idea (a GitHub equivalent to host my code, or a repo URL) end to end. Assesses feasibility and hands over a report, then on approval does the engineering (MoSCoW, use cases, diagrams, build, tests, e2e, deployments). Use to port, rebuild, replace or assess self-hosted software for Cloudflare Workers.
 ---
 
 # Serverless Anything Stack

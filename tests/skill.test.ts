@@ -4,9 +4,10 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 /**
- * Agents and the skills CLI parse SKILL.md frontmatter with strict YAML. A
- * plain (unquoted) value may not contain ": " or " #", or start with a YAML
- * indicator; quote it with double quotes instead.
+ * Agents and the skills CLI parse SKILL.md frontmatter, some strictly and some
+ * with their own simpler readers. The safest shape works for all of them: one
+ * line per field, plain (unquoted) values, no ": " or " #" inside a value, and
+ * no YAML indicator at the start.
  */
 test("SKILL.md frontmatter is strict YAML with name and description", () => {
   const text = readFileSync(join(import.meta.dirname, "../SKILL.md"), "utf8");
@@ -18,14 +19,10 @@ test("SKILL.md frontmatter is strict YAML with name and description", () => {
     expect(at).toBeGreaterThan(0);
     const key = line.slice(0, at);
     const raw = line.slice(at + 2).trim();
-    let value: string;
-    if (raw.startsWith('"')) value = JSON.parse(raw);
-    else {
-      expect(/: | #/.test(raw)).toBe(false);
-      expect(/^[-?:,\[\]{}#&*!|>'"%@`]/.test(raw)).toBe(false);
-      value = raw;
-    }
-    fields[key] = value;
+    expect(raw.length).toBeGreaterThan(0);
+    expect(/: | #/.test(raw)).toBe(false);
+    expect(/^[-?:,\[\]{}#&*!|>'"%@`]/.test(raw)).toBe(false);
+    fields[key] = raw;
   }
   expect(fields.name).toBe("serverless-anything-stack");
   expect(fields.name).toMatch(/^[a-z0-9-]{1,64}$/);
