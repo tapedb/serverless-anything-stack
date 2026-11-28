@@ -20,18 +20,19 @@
  * these schemas use (type, enum, const, required, properties,
  * additionalProperties: false, items, minItems, minLength, pattern, $ref).
  *
- *   bun scripts/validate.ts <dir-or-assessment.json> ...
+ *   node scripts/validate.ts <dir-or-assessment.json> ...
  *     (a directory, usually <app>/docs/serverless, means its assessment.json
  *     and, if present, its project.json)
  */
 
 import { readdirSync, readFileSync, existsSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { dirname, join, resolve } from "node:path";
 
 type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
 type Schema = Record<string, unknown>;
 
-const ROOT = resolve(import.meta.dir, "..");
+const ROOT = resolve(import.meta.dirname, "..");
 const SCHEMAS: Record<string, Schema> = Object.fromEntries(
   readdirSync(join(ROOT, "schemas")).map((file) => [file, JSON.parse(readFileSync(join(ROOT, "schemas", file), "utf8")) as Schema])
 );
@@ -439,10 +440,10 @@ export function validateProject(file: string): Problem[] {
   return [...problems, ...checkProject(value as unknown as Project, assessment.value as unknown as Assessment, dir)];
 }
 
-if (import.meta.main) {
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const args = process.argv.slice(2);
   if (args.length === 0) {
-    console.log("usage: bun scripts/validate.ts <app>/docs/serverless [...]");
+    console.log("usage: node scripts/validate.ts <app>/docs/serverless [...]");
     process.exit(2);
   }
   const dirs = args.map((arg) => (arg.endsWith(".json") ? dirname(resolve(arg)) : resolve(arg)));
@@ -462,6 +463,9 @@ if (import.meta.main) {
       for (const problem of problems) console.log(`      ${problem.path}: ${problem.message}`);
     }
   }
-  if (targets.length === 0) console.log("no assessments found");
+  if (targets.length === 0) {
+    console.log("no assessment.json or project.json found");
+    process.exit(1);
+  }
   process.exit(failed === 0 ? 0 : 1);
 }

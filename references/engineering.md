@@ -100,8 +100,9 @@ Per use case:
    with a message that says what the owner can now do.
 
 Keep the application small and boring: one Worker unless there is a reason
-for two, TypeScript, the framework the UI needs (see the `frameworks-on-cloudflare`
-skill when one is installed), no service the primitives already provide.
+for two, TypeScript, the framework the UI needs (Cloudflare's framework guides
+at developers.cloudflare.com/workers/framework-guides/), no service the
+primitives already provide.
 
 ## Phase 7 and 8
 

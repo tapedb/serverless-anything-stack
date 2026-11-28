@@ -22,4 +22,4 @@ and a test fails when one is stale.
 
 Writing an assessment is slower than writing a document, and statuses stay
 low until fixtures exist. Both are the point. The validator has no runtime
-dependencies, so it runs anywhere Bun does.
+dependencies, so it runs anywhere Node.js 22.18+ or Bun does.

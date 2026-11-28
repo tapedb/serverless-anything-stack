@@ -1,8 +1,9 @@
-import { describe, expect, test } from "bun:test";
+import { describe, test } from "node:test";
+import { expect } from "./expect.ts";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
-const load = (name: string) => JSON.parse(readFileSync(join(import.meta.dir, "../catalog", name), "utf8"));
+const load = (name: string) => JSON.parse(readFileSync(join(import.meta.dirname, "../catalog", name), "utf8"));
 
 describe("catalogs", () => {
   test("tapedb: every entry has a status from the legend and evidence", () => {

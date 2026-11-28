@@ -18,7 +18,7 @@ produces.
   code, tests, deploy records) into the application's own repository, under
   `docs/serverless/` and `spikes/`, and never into its own folder.
 - The scripts take the application's directory as an argument and have no
-  default target in this repository. `bun run check` runs the unit tests.
+  default target in this repository. `npm run check` runs the unit tests.
 - What stays: the skill, references, recipes, templates, schemas, scripts,
   and the catalogs. The recipes say what to test in the application.
 - Catalog facts re-checked during a run may be proposed back as a separate

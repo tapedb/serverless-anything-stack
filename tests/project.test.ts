@@ -1,11 +1,12 @@
-import { describe, expect, test } from "bun:test";
-import { checkProject, checkRules, checkSchema } from "../scripts/validate";
-import { renderProject } from "../scripts/report";
+import { describe, test } from "node:test";
+import { expect } from "./expect.ts";
+import { checkProject, checkRules, checkSchema } from "../scripts/validate.ts";
+import { renderProject } from "../scripts/report.ts";
 import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-const schema = JSON.parse(readFileSync(join(import.meta.dir, "../schemas/project.schema.json"), "utf8"));
+const schema = JSON.parse(readFileSync(join(import.meta.dirname, "../schemas/project.schema.json"), "utf8"));
 
 function assessment() {
   return {
@@ -176,7 +177,7 @@ describe("project", () => {
 });
 
 import { spawnSync } from "node:child_process";
-import { minimal } from "./shapes";
+import { minimal } from "./shapes.ts";
 
 describe("scripts on an application's docs/serverless", () => {
   test("validate and report take a directory and write report.md and delivery.md", () => {
@@ -190,20 +191,20 @@ describe("scripts on an application's docs/serverless", () => {
     writeFileSync(join(dir, "assessment.json"), JSON.stringify(a));
     writeFileSync(join(dir, "project.json"), JSON.stringify(p));
     writeFileSync(join(dir, "d.md"), "```mermaid\nflowchart LR\n a --> b\n```\n");
-    const root = join(import.meta.dir, "..");
-    const validate = spawnSync("bun", [join(root, "scripts/validate.ts"), dir], { encoding: "utf8" });
+    const root = join(import.meta.dirname, "..");
+    const validate = spawnSync(process.execPath, [join(root, "scripts/validate.ts"), dir], { encoding: "utf8" });
     expect(validate.stdout).not.toContain("FAIL");
     expect(validate.status).toBe(0);
-    const report = spawnSync("bun", [join(root, "scripts/report.ts"), dir], { encoding: "utf8" });
+    const report = spawnSync(process.execPath, [join(root, "scripts/report.ts"), dir], { encoding: "utf8" });
     expect(report.status).toBe(0);
     expect(readFileSync(join(dir, "delivery.md"), "utf8")).toContain("**Release gate:** 1 of 1 must requirements done");
     expect(readFileSync(join(dir, "report.md"), "utf8")).toContain("## Verdict");
-    const check = spawnSync("bun", [join(root, "scripts/report.ts"), "--check", dir], { encoding: "utf8" });
+    const check = spawnSync(process.execPath, [join(root, "scripts/report.ts"), "--check", dir], { encoding: "utf8" });
     expect(check.status).toBe(0);
   });
 
   test("validate without a directory prints usage", () => {
-    const r = spawnSync("bun", [join(import.meta.dir, "../scripts/validate.ts")], { encoding: "utf8" });
+    const r = spawnSync(process.execPath, [join(import.meta.dirname, "../scripts/validate.ts")], { encoding: "utf8" });
     expect(r.status).toBe(2);
   });
 });

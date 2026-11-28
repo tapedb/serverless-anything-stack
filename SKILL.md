@@ -5,8 +5,9 @@ description: Build a serverless, Cloudflare-native version of any self-hosted ap
 
 # Serverless Anything Stack
 
-The owner says what they want, for example
-`/serverless-anything-stack i want to build a github equivalent to host my codebases`.
+The owner says what they want, for example "i want to build a github
+equivalent to host my codebases", through whatever their agent uses to call
+a skill (a slash command, the skill's name, or a plain request).
 This skill takes it from there to a running application on Cloudflare with no
 server: it finds out whether it can be done, says so in a report, and once
 the owner approves, engineers it: requirements by MoSCoW, use cases,
@@ -19,6 +20,17 @@ is deployed only when e2e tests ran against it. A service mapping is not
 feature parity; this skill never says otherwise.
 
 Paths below are relative to this file. `<skill>` means this folder.
+
+## Requirements on the agent
+
+This skill assumes no particular agent or model. It needs a shell, git,
+Node.js 22.18 or newer, network access to package registries and the
+documentation it cites, and a way to ask the owner a question and wait for
+the answer. It uses no agent-specific tools: where it says "ask", ask in
+plain text; where it says "track", keep a checklist in
+`docs/serverless/project.json` (milestones) or wherever the agent tracks
+work. If the agent cannot run commands, do phases 0 to 5 and hand the owner
+the commands for the rest.
 
 ## Phases and gates
 
@@ -42,7 +54,7 @@ After Gate 1, run phases 3 to 7 without asking again except for the gates
 and for decisions that cannot be undone. Small product choices are yours:
 make them, record them as decisions, list them in the handover.
 
-`bun <skill>/scripts/validate.ts <dir>` enforces the gates: it refuses
+`node <skill>/scripts/validate.ts <dir>` enforces the gates: it refuses
 milestones under way or environments deployed without an approval, a done
 milestone whose tests have not passed, a staging or production deploy without
 `approvedBy` and deployed e2e tests, and production while a must is not done.
@@ -66,7 +78,7 @@ which Gate 1 can include; until then work in a local folder.
 <app>/
   docs/serverless/
     assessment.json  project.json        # the data; the validator reads these
-    report.md        delivery.md         # generated: bun <skill>/scripts/report.ts docs/serverless
+    report.md        delivery.md         # generated: node <skill>/scripts/report.ts docs/serverless
     diagrams/*.md                        # one mermaid block per file
     adr/NNNN-*.md                        # decisions about the application
   spikes/<claim>/                       # fixtures that prove a claim during assessment
@@ -125,11 +137,11 @@ which Gate 1 can include; until then work in a local folder.
 6. **Write the verdict** in `assessment.json`: `go`, `go-with-exclusions`
    (list each exclusion and its nearest alternative) or `no-go` (with the
    nearest honest alternative: a container, a VPS, a managed service).
-7. **Validate:** `bun <skill>/scripts/validate.ts docs/serverless`.
+7. **Validate:** `node <skill>/scripts/validate.ts docs/serverless`.
 
 ## Phase 2: Report (Gate 1)
 
-Generate `report.md` (`bun <skill>/scripts/report.ts docs/serverless`) and
+Generate `report.md` (`node <skill>/scripts/report.ts docs/serverless`) and
 hand the owner a short summary alongside it:
 
 - the verdict in one paragraph: what will work serverless, what will not,

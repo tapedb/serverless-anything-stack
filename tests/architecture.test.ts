@@ -1,5 +1,6 @@
-import { expect, test } from "bun:test";
-import { checkArchitecture } from "../scripts/validate";
+import { test } from "node:test";
+import { expect } from "./expect.ts";
+import { checkArchitecture } from "../scripts/validate.ts";
 
 const base = () => ({
   evidence: [{ id: "ev", kind: "source", ref: "x", note: "x" }],

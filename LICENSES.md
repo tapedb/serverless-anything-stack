@@ -8,8 +8,8 @@ MIT (see `LICENSE`), the same license as TapeDB.
 
 ## Runtime dependencies
 
-None. The validator, the report generator and the tests use Bun's standard
-library only.
+None. The validator, the report generator and the tests use Node.js's
+standard library only (`node:test`, `node:assert`), and run under Bun as well.
 
 ## Upstreams
 

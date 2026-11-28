@@ -54,32 +54,56 @@ produces is written to this repository (ADR 0005).
 
 ## Use the skill
 
-Claude Code discovers skills as folders containing a `SKILL.md`: personal
-skills in `~/.claude/skills/<name>/`, project skills in
-`.claude/skills/<name>/`. Clone or link this repository as one:
+`SKILL.md` follows the open Agent Skills format, so any agent that reads
+skills can use it: Claude Code, Codex, Cursor, Gemini CLI, GitHub Copilot,
+OpenCode, Amp, Cline, Windsurf and others. The skill names no agent-specific
+tools; it needs a shell, git and Node.js 22.18 or newer.
+
+Install with the `skills` CLI, which knows each agent's folder:
 
 ```bash
-git clone https://github.com/tapedb/serverless-anything-stack ~/.claude/skills/serverless-anything-stack
+npx skills add tapedb/serverless-anything-stack          # this project, agents you pick
+npx skills add tapedb/serverless-anything-stack -g       # your user folder
+npx skills add tapedb/serverless-anything-stack -a codex -a cursor
 ```
 
-Then say what you want built, for example
-`/serverless-anything-stack i want to build a github equivalent to host my codebases`,
-or name a repository: "rebuild https://github.com/owner/app on Cloudflare".
-For an assessment only, say so; the skill stops after the report. On claude.ai, upload the folder as a skill (zip it with
-`SKILL.md` at the top). Other runners that read `SKILL.md` frontmatter work
-the same way; the skill refers to its files by relative path.
+Or clone it into the folder your agent reads:
+
+| agent | project | user |
+| --- | --- | --- |
+| Codex, Cursor, Gemini CLI, GitHub Copilot, OpenCode, Amp, Cline | `.agents/skills/` | see the agent's docs (`~/.codex/skills/`, `~/.cursor/skills/`, `~/.gemini/skills/`, `~/.copilot/skills/`, ...) |
+| Claude Code | `.claude/skills/` | `~/.claude/skills/` |
+| Windsurf | `.windsurf/skills/` | `~/.codeium/windsurf/skills/` |
+
+```bash
+git clone https://github.com/tapedb/serverless-anything-stack .agents/skills/serverless-anything-stack
+```
+
+For an agent without skill support, add one line to its instructions file
+(`AGENTS.md`, `GEMINI.md`, `.cursor/rules`, ...):
+
+```
+To build or port an application to run serverless on Cloudflare, follow <path>/serverless-anything-stack/SKILL.md.
+```
+
+Then say what you want built, for example "i want to build a github
+equivalent to host my codebases" (or `/serverless-anything-stack ...` where
+your agent has slash commands), or name a repository: "rebuild
+https://github.com/owner/app on Cloudflare". For an assessment only, say so;
+the skill stops after the report. The skill refers to its own files by
+relative path.
 
 ## Check and test
 
-Requires [Bun](https://bun.sh) 1.4 or newer.
+Requires Node.js 22.18 or newer (TypeScript runs directly; no install step). Bun works too.
 
 ```bash
-bun run check          # unit tests of the validator, reports and catalogs
+npm run check          # unit tests of the validator, reports and catalogs
 
 # against an application's own docs/serverless/ directory
-bun scripts/validate.ts ../my-app/docs/serverless
-bun scripts/report.ts ../my-app/docs/serverless          # writes report.md, delivery.md
-bun scripts/report.ts --check ../my-app/docs/serverless  # fails if they are stale
+node scripts/validate.ts ../my-app/docs/serverless
+node scripts/report.ts ../my-app/docs/serverless          # writes report.md, delivery.md
+node scripts/report.ts --check ../my-app/docs/serverless  # fails if they are stale
 ```
 
 ## Limitations

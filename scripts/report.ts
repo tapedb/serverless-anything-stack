@@ -3,17 +3,18 @@
  * delivery.md from it (requirements by MoSCoW, use cases, traceability to
  * tests, milestones, environments and the release gate).
  *
- *   bun scripts/report.ts <dir> ...          write reports (usually <app>/docs/serverless)
- *   bun scripts/report.ts --check <dir> ...  fail if a committed report is stale
+ *   node scripts/report.ts <dir> ...          write reports (usually <app>/docs/serverless)
+ *   node scripts/report.ts --check <dir> ...  fail if a committed report is stale
  *
  * The report is generated so it cannot drift from the data the validator
  * checks. Write prose that belongs in it into the assessment.
  */
 import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { join, resolve } from "node:path";
-import { requirementDone, requirementTests } from "./validate";
+import { requirementDone, requirementTests } from "./validate.ts";
 
-const ROOT = join(import.meta.dir, "..");
+const ROOT = join(import.meta.dirname, "..");
 
 type A = Record<string, any>;
 
@@ -26,7 +27,7 @@ export function render(a: A): string {
   const order = ["verified", "partial", "unverified", "unsupported", "not-applicable"];
   const lines: string[] = [];
   lines.push(`# ${a.upstream.name}: assessment`, "");
-  lines.push(`Generated from \`assessment.json\` by \`bun scripts/report.ts\`. Do not edit by hand.`, "");
+  lines.push(`Generated from \`assessment.json\` by \`node scripts/report.ts\`. Do not edit by hand.`, "");
   lines.push(`- **Upstream:** ${a.upstream.url} at \`${a.upstream.revision}\` (inspected ${a.upstream.inspectedAt})`);
   lines.push(`- **License:** ${a.upstream.license}`);
   lines.push(`- **Approach:** ${a.approach}`);
@@ -93,7 +94,7 @@ export function renderProject(p: A, a: A): string {
     }).join(", ");
   const lines: string[] = [];
   lines.push(`# ${a.upstream.name}: delivery`, "");
-  lines.push("Generated from `project.json` and `assessment.json` by `bun scripts/report.ts`. Do not edit by hand.", "");
+  lines.push("Generated from `project.json` and `assessment.json` by `node scripts/report.ts`. Do not edit by hand.", "");
   lines.push(`- **Goal:** ${p.goal}`);
   if (p.repository) lines.push(`- **Repository:** ${p.repository}`);
   const ap = p.approval;
@@ -193,11 +194,11 @@ function outputs(dir: string): Array<[string, string]> {
   return out;
 }
 
-if (import.meta.main) {
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const check = process.argv.includes("--check");
   const args = process.argv.slice(2).filter((x) => x !== "--check");
   if (args.length === 0) {
-    console.log("usage: bun scripts/report.ts [--check] <app>/docs/serverless [...]");
+    console.log("usage: node scripts/report.ts [--check] <app>/docs/serverless [...]");
     process.exit(2);
   }
   const dirs = args.map((x) => resolve(x));
@@ -207,7 +208,7 @@ if (import.meta.main) {
     for (const [target, text] of outputs(dir)) {
       if (check) {
         if (!existsSync(target) || readFileSync(target, "utf8") !== text) {
-          console.log(`stale  ${show(target)} (run bun scripts/report.ts)`);
+          console.log(`stale  ${show(target)} (run node scripts/report.ts)`);
           stale++;
         }
       } else {

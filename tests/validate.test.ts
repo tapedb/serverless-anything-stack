@@ -1,10 +1,11 @@
-import { describe, expect, test } from "bun:test";
-import { checkRules, checkSchema } from "../scripts/validate";
+import { describe, test } from "node:test";
+import { expect } from "./expect.ts";
+import { checkRules, checkSchema } from "../scripts/validate.ts";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { minimal } from "./shapes";
+import { minimal } from "./shapes.ts";
 
-const schema = JSON.parse(readFileSync(join(import.meta.dir, "../schemas/assessment.schema.json"), "utf8"));
+const schema = JSON.parse(readFileSync(join(import.meta.dirname, "../schemas/assessment.schema.json"), "utf8"));
 
 const problems = (value: ReturnType<typeof minimal>) => {
   const shape = checkSchema(value as never, schema);
